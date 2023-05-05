@@ -1,0 +1,22 @@
+name: Java Syntax Check
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '19'
+
+    - name: Run Checkstyle
+      run: |
+        ./gradlew checkstyleMain
