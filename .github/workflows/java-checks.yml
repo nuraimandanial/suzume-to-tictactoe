@@ -1,12 +1,11 @@
+---
 name: Java Syntax Check
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
   syntax-check:
+    name: Syntax Checks
     runs-on: ubuntu-latest
 
     steps:
