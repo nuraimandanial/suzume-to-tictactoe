@@ -17,11 +17,11 @@ public class ImageReader {
 
         int width = image.getWidth();
         int height = image.getHeight();
-        bitData = new int[width][height];
+        bitData = new int[height][width];
 
-        for (int j = 0; j < width; j++) {
-            for (int k = 0; k < height; k++) {
-                int pixel = image.getRGB(j, k);
+        for (int j = 0; j < height; j++) {
+            for (int k = 0; k < width; k++) {
+                int pixel = image.getRGB(k, j);
                 int grey = (pixel >> 16) & 0xff;
                 bitData[j][k] = grey;
             }
@@ -40,6 +40,15 @@ public class ImageReader {
         return bitData;
     }
 
+    public static JFileChooser getPath() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("."));
+        chooser.setDialogTitle("Select Directory");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        return chooser;
+    }
+
     public static void main(String[] args) throws IOException {
         PathFinder pf = new PathFinder();
 
@@ -50,6 +59,7 @@ public class ImageReader {
         int result = chooser.showOpenDialog(null);
         if (result == JFileChooser.APPROVE_OPTION) {
             File directory = chooser.getSelectedFile();
+            System.out.println(directory);
             
             for (int i = 1; i <= 4; i++) {
                 int[][] map = new ImageReader().scaleDown(new ImageReader().imageReader(directory, i));   
