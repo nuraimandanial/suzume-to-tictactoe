@@ -1,9 +1,10 @@
 package Suzume;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -68,7 +69,7 @@ public class ImageReader {
                     System.out.println();
                 }
 
-                System.out.println("Possible path map " + i + " : " + pf.findPaths(map));
+                System.out.println("Possible path map " + i + " : " + pf.findPaths(map, 3));
             }
         }
     }
@@ -76,14 +77,60 @@ public class ImageReader {
 
 class PathFinder {
     private static final int[][] DIRECTIONS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Possible directions: up, down, left, right
-    private static final int TARGET_STATIONS = 3; // Number of stations to pass through
+    private static int TARGET_STATIONS = 3; // Number of stations to pass through
     private int pathCount;
 
-    public int findPaths(int[][] array) {
+    public int findPaths(int[][] array, int targetStation) {
+        TARGET_STATIONS = targetStation;
         pathCount = 0;
         boolean[][] visited = new boolean[array.length][array[0].length];
         dfs(array, visited, 0, 0, 0);
         return pathCount;
+    }
+
+    public int findPaths(int[][] array, boolean combined) {
+        int pathCount = 0;
+        boolean[][] visited = new boolean[array.length][array[0].length];
+
+        Queue<int[]> queue = new LinkedList<>();
+        int stationCount = 0;
+
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[0].length; j++) {
+                if (array[i][j] == 2) {
+                    queue.offer(new int[]{i, j, stationCount});
+                }
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            int[] curr = queue.poll();
+            int row = curr[0];
+            int col = curr[1];
+            int count = curr[2];
+
+            if (count == 4) {
+                pathCount++; // Found a valid path passing through exactly 4 stations
+                continue;
+            }
+
+            for (int[] direction : DIRECTIONS) {
+                int newRow = row + direction[0];
+                int newCol = col + direction[1];
+
+                if (isValidMove(array, visited, newRow, newCol)) {
+                    visited[newRow][newCol] = true;
+                    queue.offer(new int[]{newRow, newCol, count + 1});
+                }
+            }
+        }
+
+        return pathCount;
+    }
+
+    private boolean isValidMove(int[][] array, boolean[][] visited, int row, int col) {
+        return row >= 0 && row < array.length && col >= 0 && col < array[0].length &&
+                !visited[row][col] && array[row][col] != 1;
     }
 
     private void dfs(int[][] array, boolean[][] visited, int row, int col, int stationCount) {
@@ -111,7 +158,7 @@ class PathFinder {
 
         visited[row][col] = false; // Reset visited flag for backtracking
     }
-
+    
     /*
     private void printPath(int[][] array, boolean[][] visited) {
         System.out.println("Path: " + pathCount);
