@@ -40,22 +40,18 @@ public class ImageReader {
         return bitData;
     }
 
-    public static JFileChooser getPath() {
+    public JFileChooser getPath() {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
         chooser.setDialogTitle("Select Directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-
         return chooser;
     }
 
     public static void main(String[] args) throws IOException {
         PathFinder pf = new PathFinder();
 
-        JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new File("."));
-        chooser.setDialogTitle("Select Directory");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        JFileChooser chooser = new ImageReader().getPath();
         int result = chooser.showOpenDialog(null);
         if (result == JFileChooser.APPROVE_OPTION) {
             File directory = chooser.getSelectedFile();
