@@ -22,8 +22,9 @@ public class GetImageMap {
         return number;
     }
 
-    public int[][] getMap() {
-        return map;
+    public int[][] getMap(int number) {
+        if (this.number == number) return map;
+        else return null;
     }
 
     public int getPath() {
@@ -36,15 +37,24 @@ class CombineMap {
         ImageReader ir = new ImageReader();
         PathFinder pf = new PathFinder();
 
-        GetImageMap[] combinedMap = new GetImageMap[4];
-        int result = ir.getPath().showOpenDialog(null);
+        GetImageMap[] combinedMap = new GetImageMap[5];
+
+        JFileChooser chooser = ir.getPath();
+        int result = chooser.showOpenDialog(null);
         if (result == JFileChooser.APPROVE_OPTION) {
-            File directory = ir.getPath().getSelectedFile();
+            File directory = chooser.getSelectedFile();
             
             for (int i = 1; i <= 4; i++) {
                 int[][] map = ir.scaleDown(ir.imageReader(directory, i));
-                combinedMap[i - 1] = new GetImageMap(i, map, pf.findPaths(map));
-                System.out.println(combinedMap[i - 1].getMap());
+                combinedMap[i] = new GetImageMap(i, map, pf.findPaths(map));
+
+                int[][] getMap = combinedMap[i].getMap(i);
+                System.out.println("\nImage Map " + i + " : " + combinedMap[i].getPath() + " possible path.");
+                for (int j = 0; j < getMap.length; j++) {
+                    for (int k = 0; k < getMap[j].length; k++) 
+                        System.out.print(getMap[j][k] + " ");
+                    System.out.println();
+                }
             }
         }
     }
