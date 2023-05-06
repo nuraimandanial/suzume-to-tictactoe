@@ -1,5 +1,6 @@
 package Suzume;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,8 @@ public class ImageReader {
     }
 
     public static void main(String[] args) throws IOException {
-        
+        PathFinder pf = new PathFinder();
+
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
         chooser.setDialogTitle("Select Directory");
@@ -55,11 +57,68 @@ public class ImageReader {
                 System.out.println("\nImage " + i);
                 for (int j = 0; j < map.length; j++) {
                     for (int k = 0; k < map[j].length; k++) {
-                        System.out.printf("%3d,", map[j][k]);
+                        System.out.printf("%3d", map[j][k]);
                     }
                     System.out.println();
                 }
+
+                System.out.println("Possible path map " + i + " : " + pf.findPaths(map));
             }
         }
     }
+}
+
+class PathFinder {
+    private static final int[][] DIRECTIONS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Possible directions: up, down, left, right
+    private static final int TARGET_STATIONS = 3; // Number of stations to pass through
+    private int pathCount;
+
+    public int findPaths(int[][] array) {
+        pathCount = 0;
+        boolean[][] visited = new boolean[array.length][array[0].length];
+        dfs(array, visited, 0, 0, 0);
+        return pathCount;
+    }
+
+    private void dfs(int[][] array, boolean[][] visited, int row, int col, int stationCount) {
+        if (row < 0 || row >= array.length || col < 0 || col >= array[0].length || visited[row][col] || array[row][col] == 1) {
+            return; // Out of bounds, already visited, or obstacle encountered
+        }
+
+        if (array[row][col] == 3 && stationCount == TARGET_STATIONS) {
+            pathCount++; // Found a valid path passing through exactly 3 stations
+            //printPath(array, visited);
+            return;
+        }
+
+        if (array[row][col] == 2) {
+            stationCount++; // Increment station count if passing through a station
+        }
+
+        visited[row][col] = true;
+
+        for (int[] direction : DIRECTIONS) {
+            int newRow = row + direction[0];
+            int newCol = col + direction[1];
+            dfs(array, visited, newRow, newCol, stationCount);
+        }
+
+        visited[row][col] = false; // Reset visited flag for backtracking
+    }
+
+    /*
+    private void printPath(int[][] array, boolean[][] visited) {
+        System.out.println("Path: " + pathCount);
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[0].length; j++) {
+                if (visited[i][j]) {
+                    System.out.print("X ");
+                } else {
+                    System.out.print(array[i][j] + " ");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println();
+    } */
 }
