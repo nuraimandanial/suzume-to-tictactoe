@@ -24,6 +24,7 @@ public class GetImageMap {
 
     public int[][] getMap(int number) {
         if (this.number == number) return map;
+        else if (this.path == number) return map;
         else return null;
     }
 
@@ -52,7 +53,7 @@ class CombineMap {
                 System.out.println("\nImage Map " + i + " : " + combinedMap[i].getPath() + " possible path.");
                 for (int j = 0; j < getMap.length; j++) {
                     for (int k = 0; k < getMap[j].length; k++) 
-                        System.out.print(getMap[j][k] + " ");
+                        System.out.print(combinedMap[i].getMap(i)[j][k] + " ");
                     System.out.println();
                 }
             }
@@ -83,11 +84,13 @@ class Test {
                 {20, 10}  // Position for map 27
             };
 
+            int[] path = {16, 41, 38, 27};
+
             for (int i = 1; i <= 4; i++) {
                 int[][] map = ir.scaleDown(ir.imageReader(directory, i));
                 combinedMap[i] = new GetImageMap(i, map, pf.findPaths(map, 3));
 
-                int[][] getMap = combinedMap[i].getMap(i);
+                int[][] getMap = combinedMap[i].getMap(path[i - 1]);
 
                 // Get the position for the current map
                 int[] position = positions[i - 1];
@@ -108,13 +111,16 @@ class Test {
             }
 
             // Print the combined array
-            System.out.println("\nCombined Map:" + pf.findPaths(combinedArray, 4));
+            System.out.println("\nCombined Map: "); //+ new PathFinder().findPaths(combinedArray, 4)
             for (int i = 0; i < combinedArray.length; i++) {
                 for (int j = 0; j < combinedArray[i].length; j++) {
                     System.out.print(combinedArray[i][j] + " ");
                 }
                 System.out.println();
             }
+            
+            int possiblePath = new PathFinder().findPaths(combinedArray, 4);
+            System.out.println(possiblePath + " possible path");
         }
     }
 }
