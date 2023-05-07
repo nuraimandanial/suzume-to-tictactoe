@@ -74,7 +74,7 @@ public class ImageReader {
         }
     }
 }
-
+/*
 class PathFinder {
     private static final int[][] DIRECTIONS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Possible directions: up, down, left, right
     private static int TARGET_STATIONS = 3; // Number of stations to pass through
@@ -173,5 +173,5 @@ class PathFinder {
             System.out.println();
         }
         System.out.println();
-    } */
-}
+    }
+} */
