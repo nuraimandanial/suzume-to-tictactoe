@@ -1,11 +1,14 @@
 package com.tictactoe;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +20,7 @@ public class TicTacToe {
   final private String AI = "O";
   private int round;
   private String difficulty;
+  private Map<String, TicTacToe> gameInstances = new HashMap<>();
 
   @Autowired
   SavedGameRepository savedGameRepository;
@@ -33,17 +37,30 @@ public class TicTacToe {
     difficulty = "easy";
   }
 
-  @GetMapping("/board")
-  public String[][] getBoard() {
-    return board;
+  public int getRound() {
+    return round;
+  }
+
+  public void setRound(int round) {
+    this.round = round;
+  }
+
+  @GetMapping("/{email}/board")
+  public String[][] getBoard(@PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
+    return gameInstance.getBoard2();
+  }
+
+  public String[][] getBoard2() {
+    return this.board;
   }
 
   public void setBoard(String[][] board) {
     this.board = board;
   }
 
-  @GetMapping
   public void printBoard() {
+
     System.out.println("-------------");
     for (int row = 0; row < board.length; row++) {
       for (int col = 0; col < board[row].length; col++) {
@@ -59,48 +76,59 @@ public class TicTacToe {
     System.out.println("\n-------------");
   }
 
-  @PostMapping("/playerMove")
-  public ResponseEntity<String> playerMove(@RequestBody PlayerMoveClass move) {
-
+  @PostMapping("/{email}/playerMove")
+  public ResponseEntity<String> playerMove(@RequestBody PlayerMoveClass move, @PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
     double suboptimalProb = 0;
 
-    if (difficulty.equals("hard")) {
+    if (gameInstance.getDifficultyString().equals("hard")) {
       suboptimalProb = 0.2;
-    } else if (difficulty.equals("medium")) {
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
       suboptimalProb = 0.5;
     } else
       suboptimalProb = 0.7;
 
-    if (checkWin(move.getEmail(), move.getDifficulty()) == 200) {
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository) == 200) {
 
-      if (!checkValidMove(move.getWhichRow(), move.getWhichCol())) {
+      if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
         return ResponseEntity.ok("Invalid Move!");
       } else {
+        String[][] board = gameInstance.getBoard2();
         board[move.getWhichRow()][move.getWhichCol()] = PLAYER;
-        int checkWinAfterPlayerMove = checkWin(move.getEmail(), move.getDifficulty());
-        printBoard();
+        gameInstance.setBoard(board);
 
-        if (round == 0) {
+        int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+            leaderBoardRepository);
+        gameInstance.printBoard();
+
+        if (gameInstance.getRound() == 0) {
+
           Random random = new Random();
           double randomNum = random.nextDouble(1);
-          if (difficulty.equals("hard") && randomNum > 0.02) {
-            aiFirstMove(0);
-          } else if (difficulty.equals("medium") && randomNum > 0.2) {
-            aiFirstMove(0.2);
-          } else if (difficulty.equals("easy") && randomNum > 0.5) {
-            aiFirstMove(0.5);
+          if (gameInstance.getDifficultyString().equals("hard") && randomNum > 0.02) {
+            gameInstance.aiFirstMove(0);
+          } else if (gameInstance.getDifficultyString().equals("medium") && randomNum > 0.2) {
+            gameInstance.aiFirstMove(0.2);
+          } else if (gameInstance.getDifficultyString().equals("easy") && randomNum > 0.5) {
+            gameInstance.aiFirstMove(0.5);
           } else {
-            aiMove(suboptimalProb);
+            gameInstance.aiMove(suboptimalProb);
           }
+          gameInstance.printBoard();
 
         } else {
           if (checkWinAfterPlayerMove == 200) {
-            aiMove(suboptimalProb);
-            checkWin(move.getEmail(), move.getDifficulty());
+            gameInstance.aiMove(suboptimalProb);
+            gameInstance.printBoard();
+
+            gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository);
           }
         }
-        round++;
+        gameInstance.setRound(gameInstance.getRound() + 1);
+        return ResponseEntity.ok("{\"status\": "
+            + gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository)
+            + " }");
 
       }
 
@@ -122,42 +150,58 @@ public class TicTacToe {
     return true;
   }
 
-  @PostMapping("/difficulty")
-  public ResponseEntity<String> setDifficulty(@RequestBody SettingDifficulty difficult) {
-    this.difficulty = difficult.getDifficulty();
-    return ResponseEntity.ok("{\"difficulty\": \"" + this.difficulty + "\"}");
+  @PostMapping("/{email}/difficulty")
+  public ResponseEntity<String> setDifficulty(@RequestBody SettingDifficulty difficult, @PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
+    gameInstance.setDifficulty2(difficult.getDifficulty());
+    return ResponseEntity.ok("{\"difficulty\": \"" + gameInstance.getDifficultyString() + "\"}");
   }
 
-  @GetMapping("/getdifficulty")
-  public ResponseEntity<String> getDifficulty() {
-    return ResponseEntity.ok("{\"difficulty\": \"" + this.difficulty + "\"}");
+  public void setDifficulty2(String difficulty) {
+    this.difficulty = difficulty;
+  }
+
+  @GetMapping("/{email}/getdifficulty")
+  public ResponseEntity<String> getDifficulty(@PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
+    return ResponseEntity.ok("{\"difficulty\": \"" + gameInstance.getDifficultyString() + "\"}");
   }
 
   public String getDifficultyString() {
     return this.difficulty;
   }
 
-  @GetMapping("/restart")
-  public void restartGame() {
+  @GetMapping("/{email}/restart")
+  public void restartGame(@PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
     for (int row = 0; row < board.length; row++) {
       for (int col = 0; col < board[row].length; col++) {
         board[row][col] = "-";
       }
     }
-    round = 0;
-    printBoard();
+    gameInstance.setBoard(board);
+    gameInstance.setRound(0);
+    gameInstance.printBoard();
   }
 
-  @GetMapping("/newGame")
-  public void startNewGame() {
+  @GetMapping("/{email}/newGame")
+  public void startNewGame(@PathVariable String email) {
+    TicTacToe gameInstance = new TicTacToe();
+    gameInstances.put(email, gameInstance);
+
+    gameInstance.initializeGame();
+    gameInstance.printBoard();
+  }
+
+  private void initializeGame() {
     for (int row = 0; row < board.length; row++) {
       for (int col = 0; col < board[row].length; col++) {
         board[row][col] = "-";
       }
     }
     this.difficulty = "easy";
-    round = 0;
-    printBoard();
+    setRound(0);
   }
 
   public int evaluate(String b[][]) {
@@ -325,7 +369,6 @@ public class TicTacToe {
   public void aiFirstMove(double suboptimalProb) {
     if (board[1][1].equals("-")) {
       board[1][1] = AI;
-      printBoard();
     } else {
       aiMove(suboptimalProb);
     }
@@ -337,26 +380,28 @@ public class TicTacToe {
     Move bestMove = new Move();
     bestMove = findBestMove(board, suboptimalProb);
     board[bestMove.row][bestMove.col] = AI;
-    printBoard();
 
   }
 
-  @GetMapping("/checkWin")
-  public int checkWin(String email, String difficulty) {
+  @GetMapping("/{email}/checkWin")
+  public int checkWin(String email, String difficulty, UserRepository userRepository,
+      LeaderBoardRepository leaderBoardRepository) {
+
     if (equalsLinePlayer(0, 0, 0, 1, 0, 2) || equalsLinePlayer(1, 0, 1, 1, 1, 2)
         || equalsLinePlayer(2, 0, 2, 1, 2, 2) ||
         equalsLinePlayer(0, 0, 1, 0, 2, 0) || equalsLinePlayer(0, 1, 1, 1, 2, 1)
         || equalsLinePlayer(0, 2, 1, 2, 2, 2) ||
         equalsLinePlayer(0, 0, 1, 1, 2, 2) || equalsLinePlayer(0, 2, 1, 1, 2, 0)) {
       System.out.println("You Win!");
-      saveWinLoseDatabase(email, true, difficulty);
-
+      saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
       return 1;
-    } else if (equalsLineAI(0, 0, 0, 1, 0, 2) || equalsLineAI(1, 0, 1, 1, 1, 2) || equalsLineAI(2, 0, 2, 1, 2, 2) ||
-        equalsLineAI(0, 0, 1, 0, 2, 0) || equalsLineAI(0, 1, 1, 1, 2, 1) || equalsLineAI(0, 2, 1, 2, 2, 2) ||
+    } else if (equalsLineAI(0, 0, 0, 1, 0, 2) || equalsLineAI(1, 0, 1, 1, 1, 2)
+        || equalsLineAI(2, 0, 2, 1, 2, 2) ||
+        equalsLineAI(0, 0, 1, 0, 2, 0) || equalsLineAI(0, 1, 1, 1, 2, 1)
+        || equalsLineAI(0, 2, 1, 2, 2, 2) ||
         equalsLineAI(0, 0, 1, 1, 2, 2) || equalsLineAI(0, 2, 1, 1, 2, 0)) {
       System.out.println("You Lose!");
-      saveWinLoseDatabase(email, false, difficulty);
+      saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
       return -1;
     } else if (fullBoard()) {
       System.out.println("Tie!");
@@ -376,26 +421,28 @@ public class TicTacToe {
         && board[row1][col1].equals(board[row3][col3]);
   }
 
-  @PostMapping("/savegame")
-  public ResponseEntity<String> saveGame(@RequestBody BoardSaved boardToSave) {
+  @PostMapping("/{email}/savegame")
+  public ResponseEntity<String> saveGame(@RequestBody BoardSaved boardToSave, @PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
     List<User> user = userRepository.findByEmail(boardToSave.getEmail());
     if (user.isEmpty()) {
       return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
     } else {
       SavedGame saved = new SavedGame();
       saved.setUser(user.get(0));
-      saved.setBoard(getBoard());
-      saved.setDifficulty(getDifficultyString());
+      saved.setBoard(gameInstance.getBoard2());
+      saved.setDifficulty(gameInstance.getDifficultyString());
       saved.setGame("tictactoe");
       savedGameRepository.save(saved);
       return ResponseEntity.ok("{\"message\": \"Successfully Saved!\"}");
     }
   }
 
-  @PostMapping("/loadgame")
-  public ResponseEntity<String> loadGame(@RequestBody BoardLoaded loadedBoard) {
-    setBoard(loadedBoard.getBoard());
-    this.difficulty = loadedBoard.getDifficulty();
+  @PostMapping("/{email}/loadgame")
+  public ResponseEntity<String> loadGame(@RequestBody BoardLoaded loadedBoard, @PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
+    gameInstance.setBoard(loadedBoard.getBoard());
+    gameInstance.setDifficulty2(loadedBoard.getDifficulty());
 
     return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
   }
@@ -413,7 +460,9 @@ public class TicTacToe {
 
   }
 
-  public void saveWinLoseDatabase(String email, boolean isWin, String difficulty) {
+  public void saveWinLoseDatabase(String email, boolean isWin, String difficulty, UserRepository userRepository,
+      LeaderBoardRepository leaderBoardRepository) {
+
     List<User> user = userRepository.findByEmail(email);
     if (isWin) {
       if (!user.isEmpty()) {

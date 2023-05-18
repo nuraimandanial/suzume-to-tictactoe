@@ -43,7 +43,7 @@ export default function Home() {
         <div className="h-[15rem] w-1 bg-white"></div>
         <button
           onClick={() => {
-            router.push("/register");
+            router.push("/login");
           }}
           className="w-1/2 h-[15rem] gradientAnimation cursor-pointer hover:scale-[1.1] hover:backdrop-blur-xl transition duration-1000"
         >

@@ -15,7 +15,7 @@ export default function page() {
     const username = window.localStorage.getItem("username");
 
     if (token && email && username) {
-      router.push("/tttpage");
+      router.push("/home");
     }
   }, []);
   const [scope, animate] = useAnimate();

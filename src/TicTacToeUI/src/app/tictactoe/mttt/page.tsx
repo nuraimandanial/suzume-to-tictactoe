@@ -38,7 +38,10 @@ export default function page() {
 
     (async () => {
       try {
-        const res = await fetch("http://localhost:8080/mtictactoe/board");
+        const email = window.localStorage.getItem("email");
+        const res = await fetch(
+          `http://localhost:8080/mtictactoe/${email}/board`
+        );
         const board = await res.json();
         setTTT((prev) => ({ ...prev, board: board }));
 
@@ -48,7 +51,7 @@ export default function page() {
         }
 
         const response = await fetch(
-          "http://localhost:8080/mtictactoe/getdifficulty"
+          `http://localhost:8080/mtictactoe/${email}/getdifficulty`
         );
         const difficulty = await response.json();
         setTTT((prev) => ({ ...prev, difficulty: difficulty.difficulty }));
@@ -60,11 +63,14 @@ export default function page() {
 
   async function handleChange(e: any) {
     try {
-      const { value } = e.target;
-      const res = await obj.FetchDifficulty(value, "/mtictactoe");
-      if (res.ok) {
-        const dif = await res.json();
-        setTTT((prev) => ({ ...prev, difficulty: dif.difficulty }));
+      const email = window.localStorage.getItem("email");
+      if (email) {
+        const { value } = e.target;
+        const res = await obj.FetchDifficulty(value, "/mtictactoe", email);
+        if (res.ok) {
+          const dif = await res.json();
+          setTTT((prev) => ({ ...prev, difficulty: dif.difficulty }));
+        }
       }
     } catch (err) {
       console.log(err);
@@ -77,43 +83,44 @@ export default function page() {
         const email = window.localStorage.getItem("email");
         const element = document.getElementById("selectDif");
         element?.setAttribute("disabled", "true");
+
         if (email) {
-          await obj.FetchPlayerMove(
+          const isWin = await obj.FetchPlayerMove(
             whichRow,
             whichCol,
             email,
             TTT.difficulty,
             "/mtictactoe"
           );
-        }
-        const res = await fetch("http://localhost:8080/mtictactoe/board");
-        const board = await res.json();
-        const isWinRes = await fetch(
-          "http://localhost:8080/mtictactoe/checkWin"
-        );
-        const isWin = await isWinRes.json();
-        setTTT((prev) => ({
-          ...prev,
-          board: board,
-        }));
 
-        if (isWin !== 200) {
-          if (isWin === 1) {
-            setTimeout(() => {}, 200);
-            setTTT((prev) => ({
-              ...prev,
-              win: true,
-              end: { status: isWin, end: true },
-              board: board,
-            }));
-          } else {
-            setTimeout(() => {}, 200);
-            setTTT((prev) => ({
-              ...prev,
-              win: false,
-              end: { status: isWin, end: true },
-              board: board,
-            }));
+          const res = await fetch(
+            `http://localhost:8080/mtictactoe/${email}/board`
+          );
+          const board = await res.json();
+
+          setTTT((prev) => ({
+            ...prev,
+            board: board,
+          }));
+
+          if (isWin !== 200) {
+            if (isWin === 1) {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: true,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            } else {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: false,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            }
           }
         }
       }
@@ -124,10 +131,13 @@ export default function page() {
 
   async function handleRestart() {
     try {
+      const email = window.localStorage.getItem("email");
       const element = document.getElementById("selectDif");
       element?.removeAttribute("disabled");
-      await fetch("http://localhost:8080/mtictactoe/restart");
-      const res = await fetch("http://localhost:8080/mtictactoe/board");
+      await fetch(`http://localhost:8080/mtictactoe/${email}/restart`);
+      const res = await fetch(
+        `http://localhost:8080/mtictactoe/${email}/board`
+      );
       const board = await res.json();
       setTTT((prev) => ({
         ...prev,

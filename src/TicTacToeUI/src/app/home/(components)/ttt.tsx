@@ -58,7 +58,8 @@ export default function TTT() {
     id: number,
     game: string
   ) {
-    const res = await fetch("http://localhost:8080/loadgame", {
+    const email = window.localStorage.getItem("email");
+    const res = await fetch(`http://localhost:8080/${email}/loadgame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ board, difficulty }),

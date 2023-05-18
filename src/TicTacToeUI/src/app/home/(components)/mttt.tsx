@@ -58,11 +58,15 @@ export default function MTTT() {
     id: number,
     game: string
   ) {
-    const res = await fetch("http://localhost:8080/mtictactoe/loadgame", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ board, difficulty }),
-    });
+    const email = window.localStorage.getItem("email");
+    const res = await fetch(
+      `http://localhost:8080/mtictactoe/${email}/loadgame`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ board, difficulty }),
+      }
+    );
 
     handleDelete(id);
     if (res.ok) {
