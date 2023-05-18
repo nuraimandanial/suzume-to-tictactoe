@@ -1,6 +1,5 @@
 package Suzume_Ahmed.MyTree;
 
-
 import Suzume_Ahmed.MyStack.GenericStack;
 import Suzume_Ahmed.Pixel;
 import org.graphstream.graph.*;
@@ -452,7 +451,7 @@ public class MyTree<E, U> {
 
         //Find paths
 
-        System.out.println("\nOne path" + tree.findPath(tree.head, "120"));
+//        System.out.println("\nOne path" + tree.findPath(tree.head, "120"));
 //        System.out.println("Total paths from start to target: " +tree.countPaths(tree.head, "120"));
 
 

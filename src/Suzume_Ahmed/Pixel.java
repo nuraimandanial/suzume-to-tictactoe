@@ -1,6 +1,5 @@
 package Suzume_Ahmed;
 
-
 import Suzume_Ahmed.MyStack.GenericStack;
 import Suzume_Ahmed.MyTree.MyTree;
 import Suzume_Ahmed.MyTree.NodeA;
@@ -89,8 +88,7 @@ public class Pixel {
 
         // pathFinder(image2.image1_arr);
 
-
-
+        pathFinder(combined_map); //combined map coordinates
 
 
 
@@ -112,9 +110,9 @@ public class Pixel {
 //        System.out.println(tree.findPath(tree.head, "19,-39"));
         System.out.println("Total paths from start to target: " +tree.countPaths(tree.head, "9, -19", tree.head.next2, tree.getNode(tree.head, "7,-3"), tree.getNode(tree.head, "5,-11"), tree.getNode(tree.head, "0,-15")));
 
-        System.out.println("Paths is ");
-        System.out.println("Number of paths is " + new pathFinder().findPaths(image1.image1_arr, 3));
-        System.out.println("Number of paths is " + new pathFinder().findPaths2(combined_map, 4));
+//        System.out.println("Paths is ");
+//        System.out.println("Number of paths is " + new pathFinder().findPaths(image1.image1_arr, 3));
+//        System.out.println("Number of paths is " + new pathFinder().findPaths2(combined_map, 4));
 
     }
 
@@ -412,7 +410,7 @@ public class Pixel {
 //    PURPOSE: moveTos the current position of character then returns the new position value
 //    Example: moveTo(RIGHT) moveTos x to right, and returns the value at the right
     public static int moveTo(DIR direction, int[][] map) {
-        if(x >= 0 && x <= map[x].length-1 || y >= -19 && y <= 0) //While x & y are within range
+        if(x >= 0 && x <= map[x].length-1 || y >= -39 && y <= 0) //While x & y are within range
             switch(direction) {
                 case LEFT: {
                     if(x != 0) {
@@ -437,7 +435,7 @@ public class Pixel {
                     break;
                 }
                 case DOWN: {
-                    if(y != -19) {
+                    if(y != -39) {
                        // path.push(DIR.DOWN);
                         return map[abs(--y)][x];
                     } //else

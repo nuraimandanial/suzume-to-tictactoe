@@ -1,4 +1,4 @@
-package Suzume.MyStack;
+package Suzume_Ahmed.MyStack;
 
 import javax.swing.text.html.HTMLDocument;
 import java.util.Iterator;
