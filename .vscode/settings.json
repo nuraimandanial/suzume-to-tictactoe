@@ -2,6 +2,5 @@
   "java.project.sourcePaths": ["src"],
   "java.project.outputPath": "bin",
   "java.project.referencedLibraries": ["lib/**/*.jar"],
-  "git.ignoreLimitWarning": true,
-  "java.debug.settings.onBuildFailureProceed": true
+  "git.ignoreLimitWarning": true
 }

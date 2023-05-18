@@ -67,7 +67,7 @@ public class ImageReader {
                     System.out.println();
                 }
 
-                System.out.println("Possible path map " + i + " : " + pf.findPaths(map, 3));
+                System.out.println("Possible path map " + i + " : " + pf.findPaths(map, 3, true));
             }
         }
     }
