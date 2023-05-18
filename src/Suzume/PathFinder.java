@@ -1,6 +1,7 @@
 package Suzume;
 
 import java.util.ArrayDeque;
+import java.util.LinkedList;
 import java.util.Queue;
 
 /*
@@ -14,12 +15,15 @@ public class PathFinder {
     
     private int pathCount;
 
-    public int findPaths(int[][] array, int targetStation) {
+    private Queue<int[]> queue = new LinkedList<>();
+
+    public int findPaths(int[][] array, int targetStation, boolean type) {
         //System.out.println("Method findPaths(array, " + targetStation + ")");
         pathCount = 0;
         boolean[][] visited = new boolean[array.length][array[0].length];
         target_stations = targetStation;
-        depthFS(array, visited, 0, 0, 0);
+        if (type) {depthFS(array, visited, 0, 0, 0);}
+        else { /*queue.offer(new int[]{0, 0, 0}); */ breadthFS(array);}
         return pathCount;
     }
 
@@ -51,35 +55,126 @@ public class PathFinder {
         visited[row][column] = false;
     }
 
-    public void breadthFS(int[][] map, boolean[][] visited, int row, int column) {
+    public void breadthFS(int[][] map, boolean[][] visited) {
         int rows = map.length;
         int columns = map[0].length;
 
-        Queue<int[]> queue = new ArrayDeque<>();
-        queue.offer(new int[]{row, column, 0});
-        visited[row][column] = true;
-
         while (!queue.isEmpty()) {
             int[] current = queue.poll();
-            int currentRow = current[0];
-            int currentCol = current[1];
+            int row = current[0];
+            int column = current[1];
             int stationCount = current[2];
+            
+            if (row < 0 || row >= rows || column < 0 || column >= columns || visited[row][column] || map[row][column] == 1) {
+                continue;
+            }
 
-            stationCount++;
-
-            if (map[currentRow][currentCol] == 3 && stationCount == target_stations) {
+            if (map[row][column] == 3 && stationCount == target_stations) {
                 pathCount++;
-            } else {
-                for (int[] direction : DIRECTIONS) {
-                    int newRow = currentRow + direction[0];
-                    int newCol = currentCol + direction[1];
+            }
 
-                    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < columns && !visited[newRow][newCol] && map[newRow][newCol] != 1) {
-                        visited[newRow][newCol] = true;
-                        queue.offer(new int[]{newRow, newCol, stationCount});
+            if (map[row][column] == 2) {
+                stationCount++;
+            }
+
+            visited[row][column] = true;
+
+            for (int[] direction : DIRECTIONS) {
+                rows = row + direction[0];
+                columns = column + direction[1];
+                queue.offer(new int[]{rows, columns, stationCount});
+                breadthFS(map, visited);
+            }
+
+            visited[row][column] = false;
+        }
+    }
+
+    class Node {
+        int row;
+        int column;
+        int value;
+        boolean visited;
+
+        Node(int row, int column, int value) {
+            this.row = row;
+            this.column = column;
+            this.value = value;
+            visited = false;
+        }
+    }
+
+    public void breadthFS(int[][] map) {
+        int rows = map.length;
+        int columns = map[0].length;
+
+        Node[][] maps = new Node[rows][columns];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                int value = map[i][j];
+                maps[i][j] = new Node(i, j, value);
+            }
+        }
+
+        Queue<Node> queue = new ArrayDeque<>();
+        int count = 0;
+        
+        Node startNode = maps[0][0];
+        queue.add(startNode);
+
+        while (!queue.isEmpty()) {
+            Node currentNode = queue.poll();
+
+            if (currentNode.value == 3) {
+                count++;
+            }
+
+            if (currentNode.value == 2 && !currentNode.visited) {
+                currentNode.visited = true;
+
+                if (countStations(maps) == target_stations) {
+                    count++;
+                }
+
+                for (int[] direction : DIRECTIONS) {
+                    int nextRow = currentNode.row + direction[0];
+                    int nextColumn = currentNode.column + direction[1];
+
+                    if (isValidPosition(nextRow, nextColumn, maps)) {
+                        Node nextNode = maps[nextRow][nextColumn];
+                        queue.add(nextNode);
                     }
                 }
             }
         }
+
+        pathCount = count;
+    }
+
+    private boolean isValidPosition(int row, int column, Node[][] maps) {
+        int rows = maps.length;
+        int columns = maps[0].length;
+
+        if (row >= 0 && row < rows && column >= 0 && column < columns) {
+            Node node = maps[row][column];
+            return (node.value != 1) && !node.visited;
+        }
+
+        return false;
+    }
+
+    private int countStations(Node[][] maps) {
+        int count = 0;
+
+        for (Node[] map : maps) {
+            for (Node node : map) {
+                if (node.value == 2 && node.visited) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 }
