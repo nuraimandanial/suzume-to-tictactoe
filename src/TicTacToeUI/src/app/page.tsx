@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+
 import { useRouter } from "next/navigation";
 import TypewriterComponent from "typewriter-effect";
 import { Poppins } from "next/font/google";
@@ -28,24 +28,28 @@ export default function Home() {
         </div>
       </motion.div>
       <motion.div
-        className="absolute bottom-[10rem] z-[100] h-[15rem] w-full flex justify-evenly items-center text-white text-[2rem] font-extrabold"
-        initial={{ display: "none" }}
-        animate={{ display: "flex", transition: { delay: 9, duration: 1 } }}
+        className="absolute bottom-[10rem] z-[100] h-[20rem] w-full flex justify-evenly items-center text-white text-[2rem] font-extrabold bg-[rgba(255,255,255,0.3)]"
+        initial={{ opacity: 0, pointerEvents: "none" }}
+        animate={{
+          opacity: 1,
+          pointerEvents: "auto",
+          transition: { delay: 9, duration: 2 },
+        }}
       >
         <button
           onClick={() => {
             router.push("/login");
           }}
-          className="w-1/2 h-[15rem] gradientAnimation cursor-pointer hover:scale-[1.1] hover:backdrop-blur-xl transition duration-1000"
+          className="w-1/2 h-[15rem] gradientAnimation cursor-pointer"
         >
           Login
         </button>
-        <div className="h-[15rem] w-1 bg-white"></div>
+
         <button
           onClick={() => {
             router.push("/login");
           }}
-          className="w-1/2 h-[15rem] gradientAnimation cursor-pointer hover:scale-[1.1] hover:backdrop-blur-xl transition duration-1000"
+          className="w-1/2 h-[15rem] gradientAnimation cursor-pointer"
         >
           Sign Up
         </button>

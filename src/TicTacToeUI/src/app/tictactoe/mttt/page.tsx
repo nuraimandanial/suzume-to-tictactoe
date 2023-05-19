@@ -22,6 +22,11 @@ const Pop = Poppins({
 export default function page() {
   const obj = new FetchingClass();
   const router = useRouter();
+  const token = window.localStorage.getItem("token");
+
+  if (!token) {
+    router.push("/login");
+  }
   const [TTT, setTTT] = useState({
     board: [[], [], []],
     win: false,
@@ -30,12 +35,6 @@ export default function page() {
   });
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-
-    if (!token) {
-      router.push("/login");
-    }
-
     (async () => {
       try {
         const email = window.localStorage.getItem("email");

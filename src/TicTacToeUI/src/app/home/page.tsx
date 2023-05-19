@@ -12,6 +12,12 @@ import { nanoid } from "nanoid";
 export default function page() {
   const router = useRouter();
 
+  const token = window.localStorage.getItem("token");
+
+  if (!token) {
+    router.push("/login");
+  }
+
   const items = [
     {
       ID: [2, 1, 3],
@@ -31,12 +37,6 @@ export default function page() {
   ];
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-
-    if (!token) {
-      router.push("/login");
-    }
-
     (async () => {
       const email = window.localStorage.getItem("email");
       const res = await fetch(`http://localhost:8080/${email}/newGame`);

@@ -25,3 +25,4 @@ replay_pid*
 src/TicTacToeUI/node_modules/
 src/TicTacToeUI/.next/
 src/TicTacToeBackend/src/main/resources/application.properties
+src/TicTacToeUI/.env
