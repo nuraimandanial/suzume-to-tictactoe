@@ -144,6 +144,7 @@ public class DatabaseControl {
     List<LeaderBoard> intersectedList = intersection(listByGame, listByDif);
     ArrayList<String> userName = new ArrayList<>();
     ArrayList<Double> winLoseRatio = new ArrayList<>();
+    
 
     if (!intersectedList.isEmpty()) {
       Collections.sort(intersectedList, (a, b) -> a.getWinLoseRatio().compareTo(b.getWinLoseRatio()));

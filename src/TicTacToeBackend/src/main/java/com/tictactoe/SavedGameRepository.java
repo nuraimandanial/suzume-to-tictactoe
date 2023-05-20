@@ -10,4 +10,5 @@ public interface SavedGameRepository extends CrudRepository<SavedGame, Integer> 
   List<SavedGame> findById(String id);
 
   List<SavedGame> findByGame(String game);
+
 }
