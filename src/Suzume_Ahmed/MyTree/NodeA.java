@@ -10,9 +10,10 @@ public class NodeA<E, U> {
     public NodeA<E, U> next3;
 
     public NodeA<E, U> prev1;
+    NodeA<E, U> prev2;
     public int height=0;
     public boolean station = false;
-    NodeA<E, U> prev2;
+
 
     public NodeA(E element, U prevEdge) {
         this.element = element;
