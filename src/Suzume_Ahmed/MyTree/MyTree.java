@@ -50,31 +50,49 @@ public class MyTree<E, U> {
         } catch (NullPointerException ignored) {}
     }
 
-   /* public NodeA<E, U> getNode(NodeA<E, U> root, E element) {
+
+   /* public NodeA getNode(NodeA root, E element) {
         if (root == null) {
             return null;
         }
 
-        Deque<NodeA<E, U>> stack = new LinkedList<>();
-        stack.push(root);
+        Set<NodeA> visited = new HashSet<>();
+        return findNodeHelper(root, element, visited);
+    }
 
-        while (!stack.isEmpty()) {
-            NodeA<E, U> node = stack.pop();
-            if (node.element.equals(element)) {
-                return node;
-            }
-            if (node.next1 != null) {
-                stack.push(node.next1);
-            }
-            if (node.next2 != null) {
-                stack.push(node.next2);
-            }
-            if (node.next3 != null) {
-                stack.push(node.next3);
-            }
+    private NodeA findNodeHelper(NodeA node, E element, Set<NodeA> visited) {
+        if (node == null) {
+            return null;
         }
-        System.out.println("REsult not found when searched element " + element);
-        return null;
+
+        if (node.equals(element)) {
+            return node;
+        }
+
+        visited.add(node);
+
+        NodeA foundNode = null;
+        if (node.next1 != null && !visited.contains(node.next1)) {
+            foundNode = findNodeHelper(node.next1, element, visited);
+        }
+
+        if (foundNode == null && node.next2 != null && !visited.contains(node.next2)) {
+            foundNode = findNodeHelper(node.next2, element, visited);
+        }
+
+        if (foundNode == null && node.next3 != null && !visited.contains(node.next3)) {
+            foundNode = findNodeHelper(node.next3, element, visited);
+        }
+
+        if (foundNode == null && node.prev1 != null && !visited.contains(node.prev1)) {
+            foundNode = findNodeHelper(node.prev1, element, visited);
+        }
+
+        if (foundNode == null && node.prev2 != null && !visited.contains(node.prev2)) {
+            foundNode = findNodeHelper(node.prev2, element, visited);
+        }
+
+        return foundNode;
     }
 */
     public NodeA<E, U> getNode(NodeA<E, U> root, E element) {
@@ -101,11 +119,16 @@ public class MyTree<E, U> {
             if (node.next3 != null && !visited.contains(node.next3)) {
                 stack.push(node.next3);
             }
+            if (node.prev1 != null && !visited.contains(node.prev1)) {
+                stack.push(node.prev1);
+            }
+            if (node.prev2 != null && !visited.contains(node.prev2)) {
+                stack.push(node.prev2);
+            }
         }
         System.out.println("Result not found when searched element " + element);
         return null;
     }
-
 
     /*public void addPrev(E element, U prevEdge) {
         NodeA<E, U> newEle = new NodeA<>(element, prevEdge);

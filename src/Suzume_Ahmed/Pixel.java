@@ -44,10 +44,10 @@ public class Pixel {
         Pixel image4 = new Pixel("C:\\Users\\A7M1ST\\Desktop\\suzume-to-tictactoe\\src\\Suzume_Ahmed\\map\\image 4.png");
         int[][] combined_map = new int[40][20];
 
-        int[][] image1image_arr = {
-                {0,0,0,0,0,0,0},
-                {0,1,0,1,0,1,0},
-                {0,1,0,0,0,0,0},
+        int[][] image_arr = {
+                {0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 1, 1},
+                {0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1},
+                {0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 3}
         };
 
         for(int i=0; i<20; i++) {
@@ -67,7 +67,6 @@ public class Pixel {
             for(int y: x) System.out.printf("%2s ", y);
             System.out.println();
         }
-        System.out.println(DIR.LEFT.name());
 
 
         // //Find the paths taken
@@ -126,7 +125,7 @@ public class Pixel {
     public static void pathFinder(int[][] map) {
         if(first) { //if its first add, 0,0 as coordinates !!ADD ONCE ONLY
             coordinates.add("0,0");
-            connected_nodes.push("0,0");
+            //connected_nodes.push("0,0");
             node_coordinates.push("0,0");
             first = false;
         }
@@ -184,7 +183,7 @@ public class Pixel {
             gate = true;
             tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
         }
-        String direction;
+        String direction; //Stores the Direction taken, makes code readable
         if (r) {
             if(u|d|l && (level != 0) && branching) {//if there is other path
                     node_coordinates.push(x + "," + y);
@@ -193,6 +192,7 @@ public class Pixel {
                         direction =  path.get(coordinates.indexOf(x_holder+","+y_holder)).name();
                     else direction = path.peek().name();
 
+
                     tree.addNodeAuto(x + "," + y, direction);
                     tree.traverse(x + "," + y, direction);
                     if(map[abs(y)][x] == 2) //if current value is true; make it a station
@@ -200,20 +200,27 @@ public class Pixel {
                     branching = false;
                 }
                 //on each moveTo call the method
-                boolean old = false;
-                while((v=moveTo(DIR.RIGHT, map)) != 1 && v!=-10 && !old&& v!=3) {
-                    path.push(DIR.RIGHT);
+//                boolean old = false;
+                while((v=moveTo(DIR.RIGHT, map)) != 1 && v!=-10 && v!=3) {
                     //on each step && node creatin
                     if(!coordinates.contains(x+","+y)) {
+                        path.push(DIR.RIGHT);
                         coordinates.add(x + "," + y);
                         level++;
                         pathFinder(map);
+                        if(node_coordinates.contains(x_holder+","+y_holder)) { //reset the coordinates ||I need to get the latest direction before coordinate
+                            x = x_holder;
+                            y = y_holder;
+                            gate = true;
+                            tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
+                        }
                     } else if(node_coordinates.contains(x+","+y) && !connected_nodes.contains(x+","+y) && !(tree.current.element.equals(x+","+y))){ //as long as its a node & it isnt connected before
                         System.out.println("Gone into else while "+ x + ", " +y);
                         connected_nodes.push(x+","+y);
                         tree.current.prev1 = tree.getNode(tree.head, x+","+y); //prev1 from new node
-                        tree.getNode(tree.head, x+","+y).next3 = tree.current;   //from old node
-                        old = true;
+                        tree.current.prev1.next3 = tree.current;   //from old node
+                        tree.current = tree.current.prev1;
+                        break;
                     }
 
                 } if(v == 1) moveTo(DIR.LEFT, map); //if its 1, moveTo back
@@ -231,12 +238,6 @@ public class Pixel {
         //if the x & y coordinates equals node then set position it to a node coordinate
         //x_h & y_h => contains the changing values per level
         //x & y => is the current location of player.
-        if(node_coordinates.contains(x_holder+","+y_holder)) {
-            x = x_holder;
-            y = y_holder;
-            gate = true;
-            tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
-        }
         if (l) {
             if(u|d|r && (level != 0) && branching) {//if there is other path
                 node_coordinates.push(x + "," + y);
@@ -250,22 +251,29 @@ public class Pixel {
                 branching = false;
             }
             //on each moveTo call the method
-            boolean old = false;
-            while((v=moveTo(DIR.LEFT, map)) != 1 && v!=-10 && !old&& v!=3) {
-                path.push(DIR.LEFT);
+            while((v=moveTo(DIR.LEFT, map)) != 1 && v!=-10 && v!=3) {
                 //on each step && node creatin
                 if(!coordinates.contains(x+","+y)) {
+                    path.push(DIR.LEFT);
                     coordinates.add(x + "," + y);
                     level++;
                     pathFinder(map);
+                    if(node_coordinates.contains(x_holder+","+y_holder)) { //reset the coordinates ||I need to get the latest direction before coordinate
+                        x = x_holder;
+                        y = y_holder;
+                        gate = true;
+                        tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
+                    }
+
                 }
                 else if(node_coordinates.contains(x+","+y)&& !connected_nodes.contains(x+","+y) && !(tree.current.element.equals(x+","+y))){
                     connected_nodes.push(x+","+y);
 
                     System.out.println("Gone into else while "+ x + ", " +y);
-                    tree.current.prev1 = tree.getNode(tree.head, (x+","+y)); //prev1 from new node
+                    tree.current.prev1 = tree.getNode(tree.head, x+","+y); //prev1 from new node
                     tree.current.prev1.next3 = tree.current;   //from old node
-                    old = true;
+                    tree.current = tree.current.prev1;
+                    break;
                 }
 
             } if(v == 1) moveTo(DIR.RIGHT, map); //if its 1, moveTo back
@@ -280,13 +288,6 @@ public class Pixel {
 //                    tree.current = node;
         }
 
-        if(node_coordinates.contains(x_holder+","+y_holder)) {
-            x = x_holder;
-            y = y_holder;
-            gate = true;
-            tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
-
-        }
         //
         if (u) {
             if((r|l|d) && (level != 0) && branching) {//if there is other path
@@ -303,21 +304,27 @@ public class Pixel {
                 branching = false;
             }
             //on each moveTo call the method
-            boolean old = false;
-            while((v=moveTo(DIR.UP, map)) != 1 && v!=-10 && !old&& v!=3) {
-                path.push(DIR.UP);
+            while((v=moveTo(DIR.UP, map)) != 1 && v!=-10 && v!=3) {
                 //on each step && node creatin
                 if(!coordinates.contains(x+","+y)) {
+                    path.push(DIR.UP);
                     coordinates.add(x + "," + y);
                     level++;
                     pathFinder(map);
+                    if(node_coordinates.contains(x_holder+","+y_holder)) { //reset the coordinates ||I need to get the latest direction before coordinate
+                        x = x_holder;
+                        y = y_holder;
+                        gate = true;
+                        tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
+                    }
                 }
                 else if(node_coordinates.contains(x+","+y) && !connected_nodes.contains(x+","+y) && !(tree.current.element.equals(x+","+y))) {
                     connected_nodes.push(x+","+y);
                     System.out.println("Gone into else while "+ x + ", " +y);
                     tree.current.prev1 = tree.getNode(tree.head, x+","+y); //prev1 from new node
                     tree.current.prev1.next3 = tree.current;   //from old node
-                    old = true;
+                    tree.current = tree.current.prev1;
+                    break;
                 }
 
             } if(v == 1) moveTo(DIR.DOWN, map); //if its 1, moveTo back
@@ -332,20 +339,13 @@ public class Pixel {
 //                    tree.current = node;
         }
 
-        if(node_coordinates.contains(x_holder+","+y_holder)) { //if its a node
-            x = x_holder;
-            y = y_holder;
-            gate = true;                //what if I get the path of which the coordinate is on?
-            tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
 
-        }
         if (d) {
             if((r|l|u) && (level != 0) && branching) {//if there is other path
                 node_coordinates.push(x + "," + y);
                 if(gate)
                     direction =  path.get(coordinates.indexOf(x_holder+","+y_holder)).name();
-                else
-                    direction = path.peek().name();
+                else direction = path.peek().name();
 
                 tree.addNodeAuto(x + "," + y, direction);
                 tree.traverse(x + "," + y, direction);
@@ -355,21 +355,28 @@ public class Pixel {
                 branching = false;
             }
             //on each moveTo call the method
-            boolean old = false;
-            while((v=moveTo(DIR.DOWN, map)) != 1 && v!=-10 && !old && v!=3) {
-                path.push(DIR.DOWN);
+            while((v=moveTo(DIR.DOWN, map)) != 1 && v!=-10 && v!=3) {
                 //on each step && node creatin
                 if(!coordinates.contains(x+","+y)) {
+                    path.push(DIR.DOWN);
                     coordinates.add(x + "," + y);
                     level++;
                     pathFinder(map);
+                    if(node_coordinates.contains(x_holder+","+y_holder)) { //reset the coordinates ||I need to get the latest direction before coordinate
+                        x = x_holder;
+                        y = y_holder;
+                        gate = true;
+                        tree.current = tree.getNode(tree.head, x+","+y); //if I am back in the node, then get back to that node
+                    }
+
                 }
                 else if(node_coordinates.contains(x+","+y) && !connected_nodes.contains(x+","+y) && !(tree.current.element.equals(x+","+y))){ //if its a node
                     connected_nodes.push(x+","+y);
                     System.out.println("Gone into else while "+ x + ", " +y);
                     tree.current.prev1 = tree.getNode(tree.head, x+","+y); //prev1 from new node
                     tree.current.prev1.next3 = tree.current;   //from old node
-                    old = true;
+                    tree.current = tree.current.prev1;
+                    break;
                 }
 
             } if(v == 1) moveTo(DIR.UP, map); //if its 1, moveTo back
@@ -395,7 +402,7 @@ public class Pixel {
 //    PURPOSE: moves the current position of character then returns the new position value
 //    Example: move(RIGHT) moveTos x to right, and returns the value at the right
     public static int moveTo(DIR direction, int[][] map) {
-        if(x >= 0 && x <= map[x].length-1 || y >= -39 && y <= 0) //While x & y are within range
+        if(x >= 0 && x <= map[1].length && y >= -39 && y <= 0) //While x & y are within range
             switch(direction) {
                 case LEFT: {
                     if(x != 0) {
@@ -405,7 +412,7 @@ public class Pixel {
                     break;
                 }
                 case RIGHT: {
-                    if(x != map[x].length-1) {
+                    if(x != map[1].length-1) {
                        // path.push(DIR.RIGHT);
                         return map[abs(y)][++x];
                     } //else System.out.println("right Boundry reached");
