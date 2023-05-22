@@ -73,7 +73,7 @@ public class DatabaseControl {
   @PostMapping("/findemail")
   public ResponseEntity<String> findEmail(@RequestBody EmailFind userEmail) {
     List<User> user = userRepository.findByUserName(userEmail.getUsername());
-
+    System.out.println("Hi find mail");
     if (!user.isEmpty()) {
       return ResponseEntity.ok("{\"email\": \"" + user.get(0).getEmail() + "\"}");
     } else {
@@ -143,19 +143,24 @@ public class DatabaseControl {
     List<LeaderBoard> listByDif = leaderBoardRepository.findByDifficulty(leaderBoardData.getDifficulty());
     List<LeaderBoard> intersectedList = intersection(listByGame, listByDif);
     ArrayList<String> userName = new ArrayList<>();
-    ArrayList<Double> winLoseRatio = new ArrayList<>();
-    
+    ArrayList<Integer> score = new ArrayList<>();
+    ArrayList<Integer> win = new ArrayList<>();
+    ArrayList<Integer> lose = new ArrayList<>();
 
     if (!intersectedList.isEmpty()) {
-      Collections.sort(intersectedList, (a, b) -> a.getWinLoseRatio().compareTo(b.getWinLoseRatio()));
+      Collections.sort(intersectedList, (a, b) -> a.getScore().compareTo(b.getScore()));
       Collections.reverse(intersectedList);
       for (int i = 0; i < intersectedList.size(); i++) {
         userName.add(intersectedList.get(i).getUserName());
-        winLoseRatio.add(intersectedList.get(i).getWinLoseRatio());
+        score.add(intersectedList.get(i).getScore());
+        win.add(intersectedList.get(i).getWin());
+        lose.add(intersectedList.get(i).getLose());
       }
-      return ResponseEntity.ok("{\"userName\": \"" + userName + "\", \"winLoseRatio\": \"" + winLoseRatio + "\"}");
+      return ResponseEntity.ok("{\"userName\": \"" + userName + "\", \"score\": \"" + score + "\", \"win\": \"" + win
+          + "\", \"lose\": \"" + lose + "\"}");
     } else {
-      return ResponseEntity.ok("{\"userName\": \"" + userName + "\", \"winLoseRatio\": \"" + winLoseRatio + "\"}");
+      return ResponseEntity.ok("{\"userName\": \"" + userName + "\", \"score\": \"" + score + "\", \"win\": \"" + win
+          + "\", \"lose\": \"" + lose + "\"}");
     }
   }
 

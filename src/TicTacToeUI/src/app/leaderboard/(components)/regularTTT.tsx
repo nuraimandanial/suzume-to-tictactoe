@@ -9,17 +9,30 @@ export default function RegularTTT() {
   const router = useRouter();
   const [TTT, setTTT] = useState({
     EasyUserName: [""],
-    EasyWinLoseRatio: [0.0],
+    EasyScore: [0],
+    EasyWin: [0],
+    EasyLose: [0],
     MediumUserName: [""],
-    MediumWinLoseRatio: [0.0],
+    MediumScore: [0],
+    MediumWin: [0],
+    MediumLose: [0],
     HardUserName: [""],
-    HardWinLoseRatio: [0.0],
+    HardScore: [0],
+    HardWin: [0],
+    HardLose: [0],
   });
 
   const items = [
-    [0, "Easy", TTT.EasyUserName, TTT.EasyWinLoseRatio],
-    [1, "Medium", TTT.MediumUserName, TTT.MediumWinLoseRatio],
-    [2, "Hard", TTT.HardUserName, TTT.HardWinLoseRatio],
+    [0, "Easy", TTT.EasyUserName, TTT.EasyScore, TTT.EasyWin, TTT.EasyLose],
+    [
+      1,
+      "Medium",
+      TTT.MediumUserName,
+      TTT.MediumScore,
+      TTT.MediumWin,
+      TTT.MediumLose,
+    ],
+    [2, "Hard", TTT.HardUserName, TTT.HardScore, TTT.HardWin, TTT.HardLose],
   ];
 
   useEffect(() => {
@@ -35,11 +48,17 @@ export default function RegularTTT() {
       const data3 = await obj.ExtractLeaderBoard("tictactoe", "hard");
       setTTT({
         EasyUserName: data?.userName,
-        EasyWinLoseRatio: data?.winLoseRatio,
+        EasyScore: data?.score,
+        EasyWin: data?.win,
+        EasyLose: data?.lose,
         MediumUserName: data2?.userName,
-        MediumWinLoseRatio: data2?.winLoseRatio,
+        MediumScore: data2?.score,
+        MediumWin: data2?.win,
+        MediumLose: data2?.lose,
         HardUserName: data3?.userName,
-        HardWinLoseRatio: data3?.winLoseRatio,
+        HardScore: data3?.score,
+        HardWin: data3?.win,
+        HardLose: data3?.lose,
       });
     })();
   }, []);
@@ -62,43 +81,72 @@ export default function RegularTTT() {
             <section
               key={nanoid()}
               id={`${item[0]}`}
-              className="snap-center py-10 h-full w-[50rem] flex flex-col justify-center items-center gap-10"
+              className="snap-center px-10 py-10 h-full w-[50rem] flex flex-col justify-between items-center gap-10"
             >
-              <h1 className="text-white text-3xl font-extrabold">{`${item[1]}`}</h1>
-              {(item[3] as number[]).length === 0 ? (
-                <div className="h-full w-full grid place-items-center border-y-2">
-                  {" "}
-                  <h1 className="text-5xl text-white">No Records!</h1>
-                </div>
-              ) : (
-                <div className="h-full w-full grid grid-cols-2 grid-flow-col-dense border-y-2 py-8">
-                  {(item[2] as string[]).map((userName, index) => {
-                    if (index < 10) {
-                      return (
-                        <div
-                          key={nanoid()}
-                          className="h-[10%] pb-8 border-white col-start-1 text-white font-bold text-md flex justify-center gap-14"
-                        >
-                          <h1 className="">{`${index + 1})`}</h1>
-                          {userName}
-                        </div>
-                      );
-                    } else return "";
-                  })}
-                  {(item[3] as number[]).map((winLoseRatio, index) => {
-                    if (index < 10) {
-                      return (
-                        <div
-                          key={nanoid()}
-                          className="h-[10%] pb-8 border-white col-start-2 text-white font-bold text-md flex justify-center"
-                        >
-                          {winLoseRatio.toFixed(2)}
-                        </div>
-                      );
-                    } else return "";
-                  })}
-                </div>
-              )}
+              <h1 className="text-center font-extrabold text-2xl text-white">
+                {item[1]}
+              </h1>
+              <div className="h-[90%] w-full relative overflow-x-auto shadow-md sm:rounded-lg">
+                {(item[2] as string[])[0] === "" ? (
+                  <div className="w-full h-full grid place-items-center border-t-4 border-white">
+                    <h1 className="text-center font-extrabold text-4xl text-white">
+                      No Records!
+                    </h1>
+                  </div>
+                ) : (
+                  <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                      <tr>
+                        <th scope="col" className="px-6 py-3">
+                          No.
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                          User
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                          Win
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                          Lose
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                          Score
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(item[2] as string[]).map((item2, index) => {
+                        return (
+                          <tr
+                            key={nanoid()}
+                            className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                          >
+                            <th
+                              scope="row"
+                              className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                            >
+                              {index + 1}
+                            </th>
+
+                            <td className="px-6 py-4 dark:text-white">
+                              {(item[2] as string[])[index]}
+                            </td>
+                            <td className="px-6 py-4 dark:text-white">
+                              {(item[4] as number[])[index]}
+                            </td>
+                            <td className="px-6 py-4 dark:text-white">
+                              {(item[5] as number[])[index]}
+                            </td>
+                            <td className="px-6 py-4 dark:text-white">
+                              {(item[3] as number[])[index]}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </section>
           );
         })}

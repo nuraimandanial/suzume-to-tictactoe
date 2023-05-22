@@ -40,8 +40,8 @@ public class LeaderBoard {
   @Column(name = "lose")
   private int lose = 0;
 
-  @Column(name = "winLoseRatio")
-  private Double winLoseRatio = 0.0;
+  @Column(name = "score")
+  private int score = 0;
 
   public Integer getId() {
     return id;
@@ -91,11 +91,11 @@ public class LeaderBoard {
     this.lose = lose;
   }
 
-  public Double getWinLoseRatio() {
-    return this.winLoseRatio;
+  public Integer getScore() {
+    return this.score;
   }
 
-  public void setWinLoseRatio(Double winLoseRatio) {
-    this.winLoseRatio = winLoseRatio;
+  public void setScore(int score) {
+    this.score = score;
   }
 }
