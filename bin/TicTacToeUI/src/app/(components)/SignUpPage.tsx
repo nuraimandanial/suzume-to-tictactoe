@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -22,7 +23,11 @@ export default function SignUpPage() {
       registerCredential.userName === "" ||
       registerCredential.password === ""
     ) {
-      window.alert("Please Fill in the Sign Up Form Completely!");
+      Swal.fire({
+        title: "Error!",
+        text: "Please Fill in the Sign Up Form Completely!",
+        icon: "warning",
+      });
     } else {
       const res = await fetch("http://localhost:8080/database/register", {
         method: "POST",
@@ -39,23 +44,31 @@ export default function SignUpPage() {
       console.log(message.message);
 
       if (message.message === "Successfully registered!") {
-        window.alert(message.message);
-        const response = await fetch("/api/loginApi", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username: registerCredential.userName }),
-        });
+        Swal.fire({ title: message.message, icon: "success" }).then(
+          async (result) => {
+            if (result.isConfirmed) {
+              const response = await fetch("/api/loginApi", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username: registerCredential.userName }),
+              });
 
-        const res = await response.json();
-        const token = res.token;
-        window.localStorage.setItem("token", token);
-        window.localStorage.setItem("email", registerCredential.email);
-        window.localStorage.setItem("username", registerCredential.userName);
-        router.push("/home");
+              const res = await response.json();
+              const token = res.token;
+              window.localStorage.setItem("token", token);
+              window.localStorage.setItem("email", registerCredential.email);
+              window.localStorage.setItem(
+                "username",
+                registerCredential.userName
+              );
+              router.push("/home");
+            }
+          }
+        );
       } else {
-        window.alert(message.message);
+        Swal.fire({ title: message.message, icon: "error" });
         setCredential({
           email: "",
           userName: "",

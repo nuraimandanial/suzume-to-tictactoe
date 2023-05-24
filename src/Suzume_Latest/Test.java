@@ -1,9 +1,7 @@
-package Suzume;
+package Suzume_Latest;
 
 import java.awt.Font;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -34,10 +32,10 @@ public class Test {
         }
 
         int[][] positions = {
-            {0, 0},
-            {20, 0},
-            {0, 10},
-            {20, 10}
+            {0, 0},     // 16 paths
+            {20, 0},    // 38 paths
+            {0, 10},    // 41 paths
+            {20, 10}    // 27 paths
         };
 
         Node[][] combinedMap = new Node[40][20];
@@ -50,7 +48,6 @@ public class Test {
                 for (int k = 0; k < nodeMap[i][j].length; k++) {
                     int value = nodeMap[i][j][k].getValue();
                     Node node;
-                    Queue<String> path = new LinkedList<>();
                     
                     if (value == 3 && pathCount[i] != 27) {
                         node = new Node(sX + j, sY + k, 1);
@@ -70,9 +67,6 @@ public class Test {
                         node.setLeft(leftNode);
                         leftNode.setRight(node);
                     }
-
-                    if (j > 0 && k > 0) {path.add(fs.getDirection(j, k, sX + j, sY + k));}
-                    node.setPath(path);
                 }
             }
         }
@@ -80,31 +74,34 @@ public class Test {
         System.out.println("Combined Map : ");
         for (int i = 0; i < combinedMap.length; i++) {
             for (int j = 0; j < combinedMap[i].length; j++) {
+                if (j == 0) {
+                    System.out.print("  ");
+                }
                 System.out.print(combinedMap[i][j].getValue() + " ");
             }
             System.out.println();
         }
-        System.out.println("Path Count : ");
-        System.out.println("BDS : " + fs.numberOfPath(4, combinedMap, 4));
-        System.out.println("BFS (bool) : " + fs.numberOfPath(4, combinedMap, 3));
-        System.out.println("BFS (int): " + fs.numberOfPath(4, combinedMap, 2));
-        // System.out.println("DFS : " + fs.numberOfPath(4, combinedMap, 1));
 
-        List<List<String>> shortestPath = fs.getShortestPath(4, combinedMap);
+        System.out.println();
+        System.out.println("Path Count : ");
+        System.out.println("    BDS : " + fs.numberOfPath(4, combinedMap, 4));
+        System.out.println("    BFS (bool) : " + fs.numberOfPath(4, combinedMap, 3));
+        System.out.println("    BFS (int): " + fs.numberOfPath(4, combinedMap, 2));
+        // System.out.println("DFS : " + fs.numberOfPath(4, combinedMap, 1));
         
-        if (shortestPath.isEmpty()) {
+        System.out.println();
+        List<String> pathFinder = fs.findShortestPath(combinedMap, 4);
+
+        if (pathFinder.isEmpty()) {
             System.out.println("No Path Found.");
         }
         else {
-            System.out.println("Shortest Path : " + shortestPath.size());
-
-            for (List<String> path : shortestPath) {
-                System.out.println("Path : " + path.toString());
-                System.out.println("Total Steps : " + path.size());
-                System.out.println();
-            }
+            System.out.println("Shortest Paths : " + pathFinder.toString().split(", ").length);
+            System.out.println(pathFinder.toString());
         }
-        
+
+        System.out.println("Path is valid : " + String.valueOf(fs.verifyPath(pathFinder, combinedMap)).toUpperCase());
+
         // SwingUtilities.invokeLater(new Runnable() {
         //     @Override
         //     public void run() {

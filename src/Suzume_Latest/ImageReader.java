@@ -1,10 +1,8 @@
-package Suzume;
+package Suzume_Latest;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -81,7 +79,6 @@ import javax.swing.JFileChooser;
                 for (int k = 0; k < map[i][j].length; k++) {
                     int value = map[i][j][k];
                     Node node = new Node(j, k, value);
-                    Queue<String> path = new LinkedList<>();
                     
                     nodeMap[i][j][k] = node;
 
@@ -89,17 +86,13 @@ import javax.swing.JFileChooser;
                         Node upNode = nodeMap[i][j - 1][k];
                         node.setUp(upNode);
                         upNode.setDown(node);
-                        path.add(new FirstSearch().getDirection(j, k, j - 1, k));
                     }
 
                     if (k > 0) {
                         Node leftNode = nodeMap[i][j][k - 1];
                         node.setLeft(leftNode);
                         leftNode.setRight(node);
-                        path.add(new FirstSearch().getDirection(j, k, j, k - 1));
                     }
-
-                    node.setPath(path);
                 }
             }
         }

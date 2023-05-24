@@ -1,4 +1,4 @@
-package Suzume;
+package Suzume_Latest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public class AnswerDecryption {
     public void addSecretKey() {
         binaryString = new StringBuilder();
         for (String string : binaryBlocks) {
-            string = Integer.toBinaryString(Integer.parseInt(string, 2) + (7 % 2));
+            string = Integer.toBinaryString(Integer.parseInt(string, 2) + (KEY % 2));
             if (string.length() < 3) {
                 string = "0" + string;
             }

@@ -1,6 +1,4 @@
-package Suzume;
-
-import java.util.Queue;
+package Suzume_Latest;
 
 /*
  * author @nuraimandanial
@@ -10,22 +8,14 @@ public class Node {
     private int value, stationVisited;
     private boolean obstacle, isVisited;
     private Node left, right, up, down;
-
-    private Queue<String> path;
-    
-    public Queue<String> getPath() {
-        return path;
-    }
-
-    public void setPath(Queue<String> path) {
-        this.path = path;
-    }
+    private String path;
 
     public Node(int x, int y, int value) {
         this.row = x;
         this.column = y;
         this.value = value; this.stationVisited = 0;
         this.obstacle = (value == 1); this.isVisited = false;
+        this.path = "";
     }    
 
     public void setLeft(Node left) {
@@ -90,5 +80,13 @@ public class Node {
 
     public void setStationVisited(int stationVisited) {
         this.stationVisited = stationVisited;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

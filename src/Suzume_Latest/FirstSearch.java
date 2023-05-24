@@ -1,4 +1,4 @@
-package Suzume;
+package Suzume_Latest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,14 +39,6 @@ public class FirstSearch {
         else if (search == 3) { bfs(map, new boolean[map.length][map[0].length]); }
         else if (search == 4) { bds(map); }
         return pathCount;
-    }
-
-    public List<List<String>> getShortestPath (int stations, Node[][] map) {
-        this.targetStations = stations;
-        pathCount = 0;
-        List<List<String>> shortestPath = new ArrayList<>();
-        findShortestPath(shortestPath, map, new int[map.length][map[0].length]);
-        return shortestPath;
     }
 
     // private void dfs(Node[][] map, int row, int column, int stationVisited) {
@@ -252,56 +244,125 @@ public class FirstSearch {
         return count;
     }
 
-    private void findShortestPath (List<List<String>> shortestPath, Node[][] map, int[][] isVisited) {
+    private List<String> shortestPath;
+    private int minSteps;
+
+    public List<String> findShortestPath(Node[][] map, int stations) {
+        shortestPath = new ArrayList<>();
+        targetStations = stations;
+        minSteps = Integer.MAX_VALUE;
+        firstSearch(map, map[0][0], map[map.length - 1][map[0].length - 1]);
+        return shortestPath;
+    }
+
+    private void firstSearch(Node[][] map, Node source, Node destination) {
         Queue<Node> queue = new LinkedList<>();
-        queue.add(map[0][0]);
+        queue.add(source);
 
         while (!queue.isEmpty()) {
-            Node currentNode = queue.poll();
-            int row = currentNode.getRow();
-            int column = currentNode.getColumn();
-            int stationVisited = currentNode.getStationVisited();
-            Queue<String> currentPath = new LinkedList<>(currentNode.getPath());
+            Node current = queue.poll();
+            current.setVisited(true);
 
-            if (currentNode.getValue() == 3 && stationVisited == targetStations) {
-                shortestPath.add(new ArrayList<>(currentPath));
-                stationVisited = 0;
+            if (current == destination && current.getStationVisited() == targetStations) {
+                if (current.getStationVisited() < minSteps) {
+                    shortestPath.clear();
+                    shortestPath.add(current.getPath());
+                    minSteps = current.getStationVisited();
+                }
+                else if (current.getStationVisited() == minSteps) {
+                    shortestPath.add(current.getPath());
+                }
+                continue;
             }
 
-            isVisited[row][column] = 1;
+            if (current.getPath() != "") current.setPath(current.getPath() + ", ");
 
-            for (int[] direction : directions) {
-                int nX = row + direction[0];
-                int nY = column + direction[1];
+            Node left = current.getLeft();
+            if (left != null && !left.isObstacle() && !left.isVisited()) {
+                left.setVisited(true);
+                left.setStationVisited(current.getStationVisited() + (left.getValue() == 2 ? 1 : 0));
+                left.setPath(current.getPath() + "Left");
+                queue.add(left);
+            }
 
-                if (isValid(map, nX, nY) && isVisited[nX][nY] == 0 && !map[nX][nY].isObstacle()) {
-                    Node nextNode = map[nX][nY];
+            Node right = current.getRight();
+            if (right != null && !right.isObstacle() && !right.isVisited()) {
+                right.setVisited(true);
+                right.setStationVisited(current.getStationVisited() + (right.getValue() == 2 ? 1 : 0));
+                right.setPath(current.getPath() + "Right");
+                queue.add(right);
+            }
 
-                    if (isVisited[nX][nY] == 0 && !nextNode.isObstacle()) {
-                        queue.add(nextNode);
-                        nextNode.setStationVisited(stationVisited + (nextNode.getValue() == 2 ? 1 : 0));
-                        Queue<String> newPath = new LinkedList<>(currentPath);
-                        newPath.add(getDirection(row, column, nX, nY));
-                        nextNode.setPath(newPath);
-                    }
-                }
+            Node up = current.getUp();
+            if (up != null && !up.isObstacle() && !up.isVisited()) {
+                up.setVisited(true);
+                up.setStationVisited(current.getStationVisited() + (up.getValue() == 2 ? 1 : 0));
+                up.setPath(current.getPath() + "Up");
+                queue.add(up);
+            }
+
+            Node down = current.getDown();
+            if (down != null && !down.isObstacle() && !down.isVisited()) {
+                down.setVisited(true);
+                down.setStationVisited(current.getStationVisited() + (down.getValue() == 2 ? 1 : 0));
+                down.setPath(current.getPath() + "Down");
+                queue.add(down);
             }
         }
     }
 
-    public String getDirection (int cX, int cY, int nX, int nY) {
-        if (cX < nX) {
-            return "Down" + getDirection(cX, cY, nX - 1, nY);
+    public boolean verifyPath(List<String> paths, Node[][] map) {
+        int cX = map[0][0].getRow();
+        int cY = map[0][0].getColumn();
+        int count = 0;
+
+        System.out.println(map[cX][cY].getValue() + " (" + cX + ", " + cY + ")");
+
+        String[] path = {};
+        for (String string : paths) {
+            path = string.split(", ");
         }
-        if (cX > nX) {
-            return "Up" + getDirection(cX - 1, cY, nX, nY);
+
+        for (String direction : path) {
+            Node currentNode = map[cX][cY];
+            System.out.print(currentNode.getValue() + " ");
+
+            if (direction.equals("Up")) {
+                if (cX == 0 || currentNode.getUp() == null) {
+                    return false;
+                }
+
+                currentNode = currentNode.getUp();
+                cX--; count++;
+            }
+            else if (direction.equals("Down")) {
+                if (cX == map.length - 1 || currentNode.getDown() == null) {
+                    return false;
+                }
+
+                currentNode = currentNode.getDown();
+                cX++; count++;
+            }
+            else if (direction.equals("Left")) {
+                if (cY == 0 || currentNode.getLeft() == null) {
+                    return false;
+                }
+
+                currentNode = currentNode.getLeft();
+                cY--; count++;
+            }
+            else if (direction.equals("Right")) {
+                if (cY == map[0].length - 1 || currentNode.getRight() == null) {
+                    return false;
+                }
+
+                currentNode = currentNode.getRight();
+                cY++; count++;
+            }
         }
-        if (cY < nY) {
-            return "Right" + getDirection(cX, cY, nX, nY - 1);
-        }
-        if (cY > nY) {
-            return "Left" + getDirection(cX, cY - 1, nX, nY);
-        }
-        else return "";
+        
+        Node finalNode = map[cX][cY];
+        System.out.println("\n" + finalNode.getValue() + " (" + cX + ", " + cY + ") " + count);
+        return finalNode.getValue() == 3;
     }
 }
