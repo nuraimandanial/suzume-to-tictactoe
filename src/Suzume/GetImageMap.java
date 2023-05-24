@@ -119,7 +119,7 @@ class Test {
                 System.out.println();
             }
             
-            int possiblePath = new PathFinder().findPaths(combinedArray, 4, true);
+            int possiblePath = new PathFinder().findPaths(combinedArray, 4, false);
             System.out.println(possiblePath + " possible path");
         }
     }

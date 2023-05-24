@@ -53,7 +53,7 @@ export default function SignUpPage() {
         window.localStorage.setItem("token", token);
         window.localStorage.setItem("email", registerCredential.email);
         window.localStorage.setItem("username", registerCredential.userName);
-        router.push("/tttpage");
+        router.push("/home");
       } else {
         window.alert(message.message);
         setCredential({

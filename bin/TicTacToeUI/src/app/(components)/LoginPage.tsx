@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCookies } from "react-cookie";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -8,6 +9,7 @@ export default function LoginPage() {
     username: "",
     password: "",
   });
+  const [cookies, setCookie, removeCookie] = useCookies(["myCookie"]);
 
   function handleChange(e: any) {
     const { name, value } = e.target;
@@ -52,7 +54,7 @@ export default function LoginPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: loginCredential.username }),
         });
-
+        console.log(get);
         const getString = await get.json();
         const email = getString.email;
 
@@ -60,7 +62,7 @@ export default function LoginPage() {
         window.localStorage.setItem("username", loginCredential.username);
         window.localStorage.setItem("email", email);
 
-        router.push("/tttpage");
+        router.push("/home");
       } else if (message.message === "Incorrect Password!") {
         window.alert(message.message);
         setCredential((prev) => ({

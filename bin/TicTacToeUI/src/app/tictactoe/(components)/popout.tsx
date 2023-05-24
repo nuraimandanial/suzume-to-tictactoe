@@ -23,7 +23,13 @@ export default function Popout({ status }: { status: number }) {
             <h1 className={`${Comfor.className} text-red-500`}>X</h1>
           </button>
           <h1 className="text-5xl font-bold">
-            {status === 1 ? "You Win!" : status === -1 ? "You Lose!" : "Tie!"}
+            {status === 1
+              ? "You Win!"
+              : status === -1
+              ? "You Lose!"
+              : status === 0
+              ? "Tie!"
+              : ""}
           </h1>
         </div>
       )}

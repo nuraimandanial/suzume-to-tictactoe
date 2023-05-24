@@ -60,6 +60,7 @@ export default function RegularTTT() {
         {items.map((item) => {
           return (
             <section
+              key={nanoid()}
               id={`${item[0]}`}
               className="snap-center py-10 h-full w-[50rem] flex flex-col justify-center items-center gap-10"
             >

@@ -22,6 +22,13 @@ const Pop = Poppins({
 export default function page() {
   const obj = new FetchingClass();
   const router = useRouter();
+
+  const token = window.localStorage.getItem("token");
+
+  if (!token) {
+    router.push("/login");
+  }
+
   const [TTT, setTTT] = useState({
     board: [[], [], []],
     win: false,
@@ -30,15 +37,11 @@ export default function page() {
   });
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-
-    if (!token) {
-      router.push("/login");
-    }
-
     (async () => {
       try {
-        const res = await fetch("http://localhost:8080/board");
+        const email = window.localStorage.getItem("email");
+        const res = await fetch(`http://localhost:8080/${email}/board`);
+
         const board = await res.json();
         setTTT((prev) => ({ ...prev, board: board }));
 
@@ -47,7 +50,9 @@ export default function page() {
           element?.setAttribute("disabled", "true");
         }
 
-        const response = await fetch("http://localhost:8080/getdifficulty");
+        const response = await fetch(
+          `http://localhost:8080/${email}/getdifficulty`
+        );
         const difficulty = await response.json();
         setTTT((prev) => ({ ...prev, difficulty: difficulty.difficulty }));
       } catch (err) {
@@ -58,12 +63,15 @@ export default function page() {
 
   async function handleChange(e: any) {
     try {
-      const { value } = e.target;
-      const res = await obj.FetchDifficulty(value, "");
+      const email = window.localStorage.getItem("email");
+      if (email) {
+        const { value } = e.target;
+        const res = await obj.FetchDifficulty(value, "", email);
 
-      if (res.ok) {
-        const dif = await res.json();
-        setTTT((prev) => ({ ...prev, difficulty: dif.difficulty }));
+        if (res.ok) {
+          const dif = await res.json();
+          setTTT((prev) => ({ ...prev, difficulty: dif.difficulty }));
+        }
       }
     } catch (err) {
       console.log(err);
@@ -72,47 +80,46 @@ export default function page() {
 
   async function handleClick(whichRow: number, whichCol: number) {
     try {
+      const email = window.localStorage.getItem("email");
       if (TTT.end.end !== true) {
-        const email = window.localStorage.getItem("email");
         const element = document.getElementById("selectDif");
         element?.setAttribute("disabled", "true");
 
         if (email) {
-          await obj.FetchPlayerMove(
+          const isWin = await obj.FetchPlayerMove(
             whichRow,
             whichCol,
             email,
             TTT.difficulty,
             ""
           );
-        }
 
-        const res = await fetch("http://localhost:8080/board");
-        const board = await res.json();
-        const isWinRes = await fetch("http://localhost:8080/checkWin");
-        const isWin = await isWinRes.json();
-        setTTT((prev) => ({
-          ...prev,
-          board: board,
-        }));
+          const res = await fetch(`http://localhost:8080/${email}/board`);
+          const board = await res.json();
 
-        if (isWin !== 200) {
-          if (isWin === 1) {
-            setTimeout(() => {}, 200);
-            setTTT((prev) => ({
-              ...prev,
-              win: true,
-              end: { status: isWin, end: true },
-              board: board,
-            }));
-          } else {
-            setTimeout(() => {}, 200);
-            setTTT((prev) => ({
-              ...prev,
-              win: false,
-              end: { status: isWin, end: true },
-              board: board,
-            }));
+          setTTT((prev) => ({
+            ...prev,
+            board: board,
+          }));
+
+          if (isWin !== 200) {
+            if (isWin === 1) {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: true,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            } else {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: false,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            }
           }
         }
       }
@@ -123,10 +130,11 @@ export default function page() {
 
   async function handleRestart() {
     try {
+      const email = window.localStorage.getItem("email");
       const element = document.getElementById("selectDif");
       element?.removeAttribute("disabled");
-      await fetch("http://localhost:8080/restart");
-      const res = await fetch("http://localhost:8080/board");
+      await fetch(`http://localhost:8080/${email}/restart`);
+      const res = await fetch(`http://localhost:8080/${email}/board`);
       const board = await res.json();
       setTTT((prev) => ({
         ...prev,
