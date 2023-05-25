@@ -88,7 +88,8 @@ public class TicTacToe {
     } else
       suboptimalProb = 0.7;
 
-    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository) == 200) {
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
+        true) == 200) {
 
       if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
@@ -97,9 +98,9 @@ public class TicTacToe {
         String[][] board = gameInstance.getBoard2();
         board[move.getWhichRow()][move.getWhichCol()] = PLAYER;
         gameInstance.setBoard(board);
-
+        int checkWinAfterAIMove = 404;
         int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
-            leaderBoardRepository);
+            leaderBoardRepository, true);
         gameInstance.printBoard();
 
         if (gameInstance.getRound() == 0) {
@@ -117,17 +118,57 @@ public class TicTacToe {
           }
           gameInstance.printBoard();
 
+          checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+              leaderBoardRepository, true);
+
         } else {
           if (checkWinAfterPlayerMove == 200) {
             gameInstance.aiMove(suboptimalProb);
             gameInstance.printBoard();
 
-            gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository);
+            checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+                leaderBoardRepository, true);
+            System.out.println(checkWinAfterAIMove);
           }
         }
         gameInstance.setRound(gameInstance.getRound() + 1);
+        if (checkWinAfterAIMove != 404) {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterAIMove
+              + " }");
+        } else {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterPlayerMove
+              + " }");
+        }
+
+      }
+
+    }
+    return ResponseEntity.ok("Player Move successfully!");
+  }
+
+  @PostMapping("/{email}/PVPMove")
+  public ResponseEntity<String> PVPMove(@RequestBody PvPClass move, @PathVariable String email) {
+    TicTacToe gameInstance = gameInstances.get(email);
+
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
+        false) == 200) {
+
+      if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move!");
+      } else {
+        String[][] board = gameInstance.getBoard2();
+        board[move.getWhichRow()][move.getWhichCol()] = move.getSymbol();
+        gameInstance.setBoard(board);
+        int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+            leaderBoardRepository, false);
+        gameInstance.printBoard();
+        gameInstance.setRound(gameInstance.getRound() + 1);
+
         return ResponseEntity.ok("{\"status\": "
-            + gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository)
+            + checkWinAfterPlayerMove
             + " }");
 
       }
@@ -189,9 +230,9 @@ public class TicTacToe {
   public void startNewGame(@PathVariable String email) {
     TicTacToe gameInstance = new TicTacToe();
     gameInstances.put(email, gameInstance);
-
     gameInstance.initializeGame();
     gameInstance.printBoard();
+
   }
 
   private void initializeGame() {
@@ -385,7 +426,7 @@ public class TicTacToe {
 
   @GetMapping("/{email}/checkWin")
   public int checkWin(String email, String difficulty, UserRepository userRepository,
-      LeaderBoardRepository leaderBoardRepository) {
+      LeaderBoardRepository leaderBoardRepository, boolean willSave) {
 
     if (equalsLinePlayer(0, 0, 0, 1, 0, 2) || equalsLinePlayer(1, 0, 1, 1, 1, 2)
         || equalsLinePlayer(2, 0, 2, 1, 2, 2) ||
@@ -393,7 +434,9 @@ public class TicTacToe {
         || equalsLinePlayer(0, 2, 1, 2, 2, 2) ||
         equalsLinePlayer(0, 0, 1, 1, 2, 2) || equalsLinePlayer(0, 2, 1, 1, 2, 0)) {
       System.out.println("You Win!");
-      saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+      if (willSave) {
+        saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+      }
       return 1;
     } else if (equalsLineAI(0, 0, 0, 1, 0, 2) || equalsLineAI(1, 0, 1, 1, 1, 2)
         || equalsLineAI(2, 0, 2, 1, 2, 2) ||
@@ -401,7 +444,10 @@ public class TicTacToe {
         || equalsLineAI(0, 2, 1, 2, 2, 2) ||
         equalsLineAI(0, 0, 1, 1, 2, 2) || equalsLineAI(0, 2, 1, 1, 2, 0)) {
       System.out.println("You Lose!");
-      saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+      if (willSave) {
+        saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+      }
+
       return -1;
     } else if (fullBoard()) {
       System.out.println("Tie!");
@@ -473,9 +519,9 @@ public class TicTacToe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int loseTime = intersected.get(0).getLose();
+          int previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
-          intersected.get(0).setWinLoseRatio(!(loseTime == 0) ? (winTime + 1.0) / loseTime : winTime + 1.0);
+          intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
         } else {
           LeaderBoard leaderboard = new LeaderBoard();
@@ -484,6 +530,7 @@ public class TicTacToe {
           leaderboard.setDifficulty(difficulty);
           leaderboard.setWin(1);
           leaderboard.setLose(0);
+          leaderboard.setScore(5);
           leaderboard.setGame("tictactoe");
           leaderBoardRepository.save(leaderboard);
         }
@@ -496,10 +543,10 @@ public class TicTacToe {
         List<LeaderBoard> intersect1 = intersection(user2, userByDif);
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
-          int winTime = intersected.get(0).getWin();
           int loseTime = intersected.get(0).getLose();
+          int previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
-          intersected.get(0).setWinLoseRatio(winTime / (loseTime + 1.0));
+          intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));
         } else {
           LeaderBoard leaderboard = new LeaderBoard();
@@ -508,6 +555,7 @@ public class TicTacToe {
           leaderboard.setDifficulty(difficulty);
           leaderboard.setWin(0);
           leaderboard.setLose(1);
+          leaderboard.setScore(-3);
           leaderboard.setGame("tictactoe");
           leaderBoardRepository.save(leaderboard);
         }
@@ -550,6 +598,43 @@ class PlayerMoveClass {
 
   public String getDifficulty() {
     return difficulty;
+  }
+
+}
+
+class PvPClass {
+  private int whichRow;
+  private int whichCol;
+  private String email;
+  private String difficulty;
+  private String symbol;
+
+  public PvPClass(int whichCol, int whichRow, String email, String difficulty, String symbol) {
+    this.whichRow = whichRow;
+    this.whichCol = whichCol;
+    this.email = email;
+    this.difficulty = difficulty;
+    this.symbol = symbol;
+  }
+
+  public int getWhichRow() {
+    return whichRow;
+  }
+
+  public int getWhichCol() {
+    return whichCol;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public String getDifficulty() {
+    return difficulty;
+  }
+
+  public String getSymbol() {
+    return symbol;
   }
 
 }

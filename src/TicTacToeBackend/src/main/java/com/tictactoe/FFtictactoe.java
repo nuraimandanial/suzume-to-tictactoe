@@ -77,7 +77,8 @@ public class FFtictactoe {
     } else
       suboptimalProb = 0.5;
 
-    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository) == 200) {
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
+        true) == 200) {
 
       if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
@@ -87,20 +88,57 @@ public class FFtictactoe {
         board[move.getWhichRow()][move.getWhichCol()] = PLAYER;
         gameInstance.setBoard(board);
 
+        int checkWinAfterAIMove = 404;
         int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
-            leaderBoardRepository);
+            leaderBoardRepository, true);
         gameInstance.printBoard();
 
         if (checkWinAfterPlayerMove == 200) {
           gameInstance.aiMove(suboptimalProb);
           gameInstance.printBoard();
 
-          gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository);
+          checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+              leaderBoardRepository, true);
+        }
+
+        if (checkWinAfterAIMove != 404) {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterAIMove
+              + " }");
+        } else {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterPlayerMove
+              + " }");
         }
       }
-      return ResponseEntity.ok("{\"status\": "
-          + gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository)
-          + " }");
+    }
+    return ResponseEntity.ok("Player Move successfully!");
+  }
+
+  @PostMapping("/{email}/PVPMove")
+  public ResponseEntity<String> PVPMove(@RequestBody PvPClass move, @PathVariable String email) {
+    FFtictactoe gameInstance = gameInstances.get(email);
+
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
+        false) == 200) {
+
+      if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move!");
+      } else {
+        String[][] board = gameInstance.getBoard2();
+        board[move.getWhichRow()][move.getWhichCol()] = move.getSymbol();
+        gameInstance.setBoard(board);
+        int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+            leaderBoardRepository, false);
+        gameInstance.printBoard();
+
+        return ResponseEntity.ok("{\"status\": "
+            + checkWinAfterPlayerMove
+            + " }");
+
+      }
+
     }
     return ResponseEntity.ok("Player Move successfully!");
   }
@@ -381,7 +419,7 @@ public class FFtictactoe {
 
   @GetMapping("/{email}/checkWin")
   public int checkWin(String email, String difficulty, UserRepository userRepository,
-      LeaderBoardRepository leaderBoardRepository) {
+      LeaderBoardRepository leaderBoardRepository, boolean willSave) {
     // Checking for Rows for X or O victory.
     for (int row = 0; row < 5; row++) {
       for (int col = 0; col < 3; col++) {
@@ -389,13 +427,19 @@ public class FFtictactoe {
             board[row][col + 1].equals(board[row][col + 2])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           }
 
           else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
 
@@ -511,8 +555,8 @@ public class FFtictactoe {
 
   public void saveWinLoseDatabase(String email, boolean isWin, String difficulty, UserRepository userRepository,
       LeaderBoardRepository leaderBoardRepository) {
+
     List<User> user = userRepository.findByEmail(email);
-    System.out.println(email);
     if (isWin) {
       if (!user.isEmpty()) {
         List<LeaderBoard> user2 = leaderBoardRepository.findByUser(user.get(0));
@@ -522,9 +566,9 @@ public class FFtictactoe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int loseTime = intersected.get(0).getLose();
+          int previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
-          intersected.get(0).setWinLoseRatio(!(loseTime == 0) ? (winTime + 1.0) / loseTime : winTime + 1.0);
+          intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
         } else {
           LeaderBoard leaderboard = new LeaderBoard();
@@ -533,12 +577,12 @@ public class FFtictactoe {
           leaderboard.setDifficulty(difficulty);
           leaderboard.setWin(1);
           leaderboard.setLose(0);
+          leaderboard.setScore(5);
           leaderboard.setGame("ffttt");
           leaderBoardRepository.save(leaderboard);
         }
       }
     } else {
-      System.out.println(user);
       if (!user.isEmpty()) {
         List<LeaderBoard> user2 = leaderBoardRepository.findByUser(user.get(0));
         List<LeaderBoard> userByDif = leaderBoardRepository.findByDifficulty(difficulty);
@@ -546,10 +590,10 @@ public class FFtictactoe {
         List<LeaderBoard> intersect1 = intersection(user2, userByDif);
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
-          int winTime = intersected.get(0).getWin();
           int loseTime = intersected.get(0).getLose();
+          int previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
-          intersected.get(0).setWinLoseRatio(winTime / (loseTime + 1.0));
+          intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));
         } else {
           LeaderBoard leaderboard = new LeaderBoard();
@@ -558,6 +602,7 @@ public class FFtictactoe {
           leaderboard.setDifficulty(difficulty);
           leaderboard.setWin(0);
           leaderboard.setLose(1);
+          leaderboard.setScore(-3);
           leaderboard.setGame("ffttt");
           leaderBoardRepository.save(leaderboard);
         }
@@ -602,6 +647,43 @@ class PlayerMoveClass {
   public String getDifficulty() {
     return difficulty;
   }
+}
+
+class PvPClass {
+  private int whichRow;
+  private int whichCol;
+  private String email;
+  private String difficulty;
+  private String symbol;
+
+  public PvPClass(int whichCol, int whichRow, String email, String difficulty, String symbol) {
+    this.whichRow = whichRow;
+    this.whichCol = whichCol;
+    this.email = email;
+    this.difficulty = difficulty;
+    this.symbol = symbol;
+  }
+
+  public int getWhichRow() {
+    return whichRow;
+  }
+
+  public int getWhichCol() {
+    return whichCol;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public String getDifficulty() {
+    return difficulty;
+  }
+
+  public String getSymbol() {
+    return symbol;
+  }
+
 }
 
 class BoardSaved {

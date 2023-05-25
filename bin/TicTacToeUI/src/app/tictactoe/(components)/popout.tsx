@@ -6,12 +6,40 @@ const Comfor = Comfortaa({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin", "latin-ext"],
 });
-export default function Popout({ status }: { status: number }) {
+export default function Popout({
+  status,
+  gameType,
+}: {
+  status: number;
+  gameType: string;
+}) {
   const [show, setShow] = useState(true);
 
   function handleClick() {
     setShow((prev) => !prev);
   }
+
+  function messageDisplay() {
+    if (gameType === "PvP") {
+      return status === 1
+        ? "Player 1 Win!"
+        : status === -1
+        ? "Player 2 Win!"
+        : status === 0
+        ? "Tie!"
+        : "";
+    } else {
+      return status === 1
+        ? "You Win!"
+        : status === -1
+        ? "You Lose!"
+        : status === 0
+        ? "Tie!"
+        : "";
+    }
+  }
+
+  const message = messageDisplay();
   return (
     <>
       {show && (
@@ -22,9 +50,7 @@ export default function Popout({ status }: { status: number }) {
           >
             <h1 className={`${Comfor.className} text-red-500`}>X</h1>
           </button>
-          <h1 className="text-5xl font-bold">
-            {status === 1 ? "You Win!" : status === -1 ? "You Lose!" : "Tie!"}
-          </h1>
+          <h1 className="text-5xl font-bold">{message}</h1>
         </div>
       )}
     </>
