@@ -372,7 +372,7 @@ public class Pixel {
                 }
                 else if(node_coordinates.contains(x+","+y) && !connected_nodes.contains(x+","+y) && !(tree.current.element.equals(x+","+y))){ //if its a node
                     connected_nodes.push(x+","+y);
-                    System.out.println("Gone into else while "+ x + ", " +y);
+                    System.out.println("Gonex c into else while "+ x + ", " +y);
                     tree.current.prev1 = tree.getNode(tree.head, x+","+y); //prev1 from new node
                     tree.current.prev1.next3 = tree.current;   //from old node
                     tree.current = tree.current.prev1;

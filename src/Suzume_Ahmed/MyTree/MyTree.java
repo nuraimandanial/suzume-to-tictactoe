@@ -36,17 +36,16 @@ public class MyTree<E, U> {
         if(i >= 2) i = 0;
 
         try {
-            switch (labels[i++]) {
-                case "next1":
-                    current.next1 = newEle;
-                    break;
-                case "next2":
-                    current.next2 = newEle;
-                    break;
-                case "next3":
-                    current.next3 = newEle;
-                    break;
-            }
+            if(current.next1  == null)
+                current.next1 = newEle;
+            else if(current.next2  == null)
+                current.next2 = newEle;
+            else if(current.prev2 == null)
+                current.prev2 = newEle;
+//            //Extra leave
+//            if(current.next3  != null)
+//                current.next3 = newEle;
+
         } catch (NullPointerException ignored) {}
     }
 
@@ -269,7 +268,7 @@ public class MyTree<E, U> {
 
                 System.out.println("head accessed");
                 tree.setAttribute("ui.stylesheet", "node { text-mode: normal; text-size: 20; text-offset: 25px, 5px; text-alignment: justify;} edge {text-size: 20;} node#\""+node.element+node.prevEdge+"\" {fill-color: red; text-size: 20;}" +
-                        "node#\"9,-19RIGHT\" {fill-color: yellow;}" + sheet +
+                        "node#\"19,-39RIGHT\" {fill-color: blue;}" + sheet +
                         "edge {arrow-shape: arrow; arrow-size: 9px,5px; text-alignment: along;}");
 
             }
@@ -277,7 +276,7 @@ public class MyTree<E, U> {
                 visited.push((String) node.element+node.prevEdge);
 
             System.out.print(node.element + " "); // print current node's value
-            if(iterations >= 500) return;
+            if(iterations >= 5000) return;
 
             //if(visited.contains((String) node.element)) {
                 displayTree(node.next1); // recursively display next1 node
@@ -433,33 +432,12 @@ public class MyTree<E, U> {
 
         //Adding nodes to the master one
         tree.addNodeAuto("20", "left"); //add to first
-        tree.addNodeAuto("5", "right"); //add to second
-        tree.addNodeAuto("6", "down"); //add to second
-
-        System.out.println("Tree height " + tree.current.height);
 
         tree.traverse("5", "right");
-        tree.current.station = true;
-        System.out.println("Tree height " + tree.current.height);
 
-        tree.addNodeAuto("50", "down");
-        System.out.println("height is " +  tree.current.height);
-
-        tree.addNodeAuto("100","up");
-        tree.addNodeAuto("101", "up");
+        tree.addNodeAuto("5", "vlue");
 
 
-
-
-        tree.traverse("100", "up");
-        System.out.println("height is " + MyTree.height);
-        tree.addNodeAuto("12", "newone");
-        tree.traverse("12", "newone");
-
-        tree.current.prev1 = tree.head;
-
-        tree.addNodeAuto("120", "down");
-        tree.traverse("120", "down");
 
 
 
