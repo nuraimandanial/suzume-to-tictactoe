@@ -325,7 +325,6 @@ public class FirstSearch {
 
         for (String direction : path) {
             Node currentNode = map[cX][cY];
-            System.out.print(currentNode.getValue() + " ");
 
             if (direction.equals("Up")) {
                 if (cX == 0 || currentNode.getUp() == null) {
@@ -359,6 +358,7 @@ public class FirstSearch {
                 currentNode = currentNode.getRight();
                 cY++; count++;
             }
+            System.out.print(currentNode.getValue() + " ");
         }
         
         Node finalNode = map[cX][cY];

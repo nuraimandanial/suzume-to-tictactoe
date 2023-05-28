@@ -1,4 +1,4 @@
-package AnswerDecryption;
+package Suzume_DecryptAnswer;
 
 import java.util.Stack;
 
