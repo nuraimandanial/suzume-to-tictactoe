@@ -1,13 +1,15 @@
 "use client";
 import { nanoid } from "nanoid";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { Comfortaa, Poppins } from "next/font/google";
-import Popout from "./(components)/popout";
+import Popout from "../(components)/popout";
 import NavBar from "../../(components)/navBar";
 import { useRouter } from "next/navigation";
 import Background from "./(components)/Background";
 import FetchingClass from "../(components)/Fetching";
+import Swal from "sweetalert2";
+import BottomNav from "../(components)/BottomNav";
 
 const Comfor = Comfortaa({
   weight: ["400", "500", "600", "700"],
@@ -22,23 +24,37 @@ const Pop = Poppins({
 export default function page() {
   const obj = new FetchingClass();
   const router = useRouter();
+  const token = window.localStorage.getItem("token");
+
+  if (!token) {
+    router.push("/login");
+  }
+
   const [TTT, setTTT] = useState({
     board: [[], [], []],
     win: false,
     end: { status: 200, end: false },
     difficulty: "easy",
   });
+  const [gameType, setGameType] = useState("PvPC");
+  const [round, setRound] = useState(0);
+  const preventInitialRender = useRef(false);
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-
-    if (!token) {
-      router.push("/login");
+    if (preventInitialRender.current === false) {
+      preventInitialRender.current = true;
+    } else {
+      handleRestart();
     }
+  }, [gameType]);
 
+  useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:8080/fftictactoe/board");
+        const email = window.localStorage.getItem("email");
+        const res = await fetch(
+          `http://localhost:8080/fftictactoe/${email}/board`
+        );
         const board = await res.json();
         setTTT((prev) => ({ ...prev, board: board }));
 
@@ -48,7 +64,7 @@ export default function page() {
         }
 
         const response = await fetch(
-          "http://localhost:8080/fftictactoe/getdifficulty"
+          `http://localhost:8080/fftictactoe/${email}/getdifficulty`
         );
         const difficulty = await response.json();
         setTTT((prev) => ({ ...prev, difficulty: difficulty.difficulty }));
@@ -60,12 +76,15 @@ export default function page() {
 
   async function handleChange(e: any) {
     try {
-      const { value } = e.target;
-      const res = await obj.FetchDifficulty(value, "/fftictactoe");
+      const email = window.localStorage.getItem("email");
+      if (email) {
+        const { value } = e.target;
+        const res = await obj.FetchDifficulty(value, "/fftictactoe", email);
 
-      if (res.ok) {
-        const dif = await res.json();
-        setTTT((prev) => ({ ...prev, difficulty: dif.difficulty }));
+        if (res.ok) {
+          const dif = await res.json();
+          setTTT((prev) => ({ ...prev, difficulty: dif.difficulty }));
+        }
       }
     } catch (err) {
       console.log(err);
@@ -79,43 +98,105 @@ export default function page() {
         const element = document.getElementById("selectDif");
         element?.setAttribute("disabled", "true");
         if (email) {
-          await obj.FetchPlayerMove(
+          const isWin = await obj.FetchPlayerMove(
             whichRow,
             whichCol,
             email,
             TTT.difficulty,
             "/fftictactoe"
           );
-        }
-        const res = await fetch("http://localhost:8080/fftictactoe/board");
-        const board = await res.json();
-        const isWinRes = await fetch(
-          "http://localhost:8080/fftictactoe/checkWin"
-        );
-        const isWin = await isWinRes.json();
-        setTTT((prev) => ({
-          ...prev,
-          board: board,
-        }));
 
-        if (isWin !== 200) {
-          if (isWin === 1) {
-            setTimeout(() => {}, 200);
-            setTTT((prev) => ({
-              ...prev,
-              win: true,
-              end: { status: isWin, end: true },
-              board: board,
-            }));
-          } else {
-            setTimeout(() => {}, 200);
-            setTTT((prev) => ({
-              ...prev,
-              win: false,
-              end: { status: isWin, end: true },
-              board: board,
-            }));
+          const res = await fetch(
+            `http://localhost:8080/fftictactoe/${email}/board`
+          );
+          const board = await res.json();
+
+          setTTT((prev) => ({
+            ...prev,
+            board: board,
+          }));
+
+          if (isWin === 1 || isWin === 0 || isWin === -1) {
+            if (isWin === 1) {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: true,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            } else {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: false,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            }
           }
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function handlePVPMove(whichRow: number, whichCol: number) {
+    try {
+      let symbol;
+      if (round % 2 === 0) {
+        symbol = "X";
+      } else {
+        symbol = "O";
+      }
+
+      const email = window.localStorage.getItem("email");
+      if (TTT.end.end !== true) {
+        const element = document.getElementById("selectDif");
+        element?.setAttribute("disabled", "true");
+
+        if (email) {
+          const isWin = await obj.FetchPlayer2Move(
+            whichRow,
+            whichCol,
+            email,
+            TTT.difficulty,
+            "/fftictactoe",
+            symbol
+          );
+
+          const res = await fetch(
+            `http://localhost:8080/fftictactoe/${email}/board`
+          );
+          const board = await res.json();
+
+          setTTT((prev) => ({
+            ...prev,
+            board: board,
+          }));
+
+          if (isWin === 1 || isWin === 0 || isWin === -1) {
+            if (isWin === 1) {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: true,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            } else {
+              setTimeout(() => {}, 200);
+              setTTT((prev) => ({
+                ...prev,
+                win: false,
+                end: { status: isWin, end: true },
+                board: board,
+              }));
+            }
+          }
+
+          setRound((prev) => prev + 1);
         }
       }
     } catch (err) {
@@ -125,10 +206,13 @@ export default function page() {
 
   async function handleRestart() {
     try {
+      const email = window.localStorage.getItem("email");
       const element = document.getElementById("selectDif");
       element?.removeAttribute("disabled");
-      await fetch("http://localhost:8080/fftictactoe/restart");
-      const res = await fetch("http://localhost:8080/fftictactoe/board");
+      await fetch(`http://localhost:8080/fftictactoe/${email}/restart`);
+      const res = await fetch(
+        `http://localhost:8080/fftictactoe/${email}/board`
+      );
       const board = await res.json();
       setTTT((prev) => ({
         ...prev,
@@ -136,6 +220,7 @@ export default function page() {
         win: false,
         end: { status: 200, end: false },
       }));
+      setRound(0);
     } catch (err) {
       console.log(err);
     }
@@ -146,6 +231,7 @@ export default function page() {
       const email = window.localStorage.getItem("email");
       if (email) {
         await obj.FetchSaveGame(email, "/fftictactoe");
+        handleRestart();
       }
     } catch (err) {
       console.log(err);
@@ -157,28 +243,37 @@ export default function page() {
       className={`h-screen w-full flex justify-center items-center overflow-hidden ${Comfor.className}`}
     >
       <NavBar />
-      {TTT.end.end && <Popout status={TTT.end.status} />}
+      <BottomNav gameType={gameType} setGameType={setGameType} />
+      {TTT.end.end && <Popout status={TTT.end.status} gameType={gameType} />}
       <Background />
-      {TTT.win && <Confetti className="overflow-hidden" />}
+      {gameType === "PvPC" && TTT.win && (
+        <Confetti className="overflow-hidden" />
+      )}
       <div className="fixed left-0 right-0 z-[3] h-[35rem] backdrop-blur-sm bg-[rgba(255,255,255,0.4)] border-none px-10 py-8 flex flex-col justify-between items-center">
-        <select
-          className="px-4 py-2 bg-transparent border-2 border-black cursor-pointer"
-          name="difficulty"
-          value={TTT.difficulty}
-          onChange={handleChange}
-          id="selectDif"
-        >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
+        {gameType !== "PvP" ? (
+          <select
+            className="px-4 py-2 bg-transparent border-2 border-black cursor-pointer"
+            name="difficulty"
+            value={TTT.difficulty}
+            onChange={handleChange}
+            id="selectDif"
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        ) : (
+          ""
+        )}
         <div className="z-[3] rounded-2xl font-extrabold grid grid-cols-[4.5rem_4.5rem_4.5rem_4.5rem_4.5rem] justify-center">
           {TTT.board.map((board1, index) => {
             return board1.map((board2, index2) => {
               return (
                 <div
                   onClick={() => {
-                    handleClick(index, index2);
+                    gameType === "PvPC"
+                      ? handleClick(index, index2)
+                      : handlePVPMove(index, index2);
                   }}
                   key={nanoid()}
                   className={` text-[2.5rem] flex justify-center items-center cursor-pointer text-5xl w-[4.5rem] h-[4.5rem] border-2 border-black`}
@@ -195,17 +290,31 @@ export default function page() {
             });
           })}
         </div>
-        ;
+
         <div className="flex gap-4">
           <button
-            onClick={handleSave}
-            className={`${Pop.className} z-[3] font-bold p-[0.6rem_2rem] text-lg rounded-2xl border-2 border-black`}
+            onClick={() => {
+              Swal.fire({
+                title: "Confirm Save?",
+                text: "Your current progress will be reset as well.",
+                icon: "warning",
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  handleSave();
+                }
+              });
+            }}
+            className={`${Pop.className} ${
+              TTT.end.end ? "hidden" : gameType === "PvP" ? "hidden" : ""
+            } z-[3] font-bold p-[0.6rem_2rem] text-lg rounded-2xl border-2 border-black`}
           >
             Save
           </button>
           <button
             onClick={handleRestart}
-            className={`${Pop.className} z-[3] font-bold p-[0.6rem_2rem] text-lg rounded-2xl border-2 border-black`}
+            className={`${Pop.className} ${
+              TTT.end.end ? "" : gameType === "PvP" ? "" : "hidden"
+            } z-[3] font-bold p-[0.6rem_2rem] text-lg rounded-2xl border-2 border-black`}
           >
             Restart
           </button>

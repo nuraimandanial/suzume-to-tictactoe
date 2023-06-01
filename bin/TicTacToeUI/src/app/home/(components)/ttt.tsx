@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Comfortaa } from "next/font/google";
 import { useRouter } from "next/navigation";
 import HomeMethod from "./HomeMethod";
+import Swal from "sweetalert2";
 
 const Comfor = Comfortaa({
   weight: ["400", "500", "600", "700"],
@@ -58,7 +59,8 @@ export default function TTT() {
     id: number,
     game: string
   ) {
-    const res = await fetch("http://localhost:8080/loadgame", {
+    const email = window.localStorage.getItem("email");
+    const res = await fetch(`http://localhost:8080/${email}/loadgame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ board, difficulty }),
@@ -160,19 +162,50 @@ export default function TTT() {
 
                   <button
                     onClick={() =>
-                      handleLoadGame(
-                        insideBoard,
-                        loadGameCriteria.difficulty[index],
-                        loadGameCriteria.gameId[index],
-                        loadGameCriteria.gameType[index]
-                      )
+                      Swal.fire({
+                        title: "Load this game?",
+                        text: "After resuming, this record will be permanently deleted",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes",
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          handleLoadGame(
+                            insideBoard,
+                            loadGameCriteria.difficulty[index],
+                            loadGameCriteria.gameId[index],
+                            loadGameCriteria.gameType[index]
+                          );
+                        }
+                      })
                     }
                     className="grid col-start-1 px-3 py-2 w-40 bg-red-300 text-black rounded-xl mt-10"
                   >
                     Load Game
                   </button>
                   <button
-                    onClick={() => handleDelete(loadGameCriteria.gameId[index])}
+                    onClick={() =>
+                      Swal.fire({
+                        title: "Are you sure?",
+                        text: "You won't be able to revert this!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!",
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          handleDelete(loadGameCriteria.gameId[index]);
+                          Swal.fire(
+                            "Deleted!",
+                            "Your game has been deleted.",
+                            "success"
+                          );
+                        }
+                      })
+                    }
                     className="grid col-start-3 px-3 py-2 w-40 bg-red-300 text-black rounded-xl mt-10"
                   >
                     Delete Game

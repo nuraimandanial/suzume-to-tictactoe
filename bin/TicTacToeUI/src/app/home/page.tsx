@@ -12,6 +12,12 @@ import { nanoid } from "nanoid";
 export default function page() {
   const router = useRouter();
 
+  const token = window.localStorage.getItem("token");
+
+  if (!token) {
+    router.push("/login");
+  }
+
   const items = [
     {
       ID: [2, 1, 3],
@@ -31,11 +37,10 @@ export default function page() {
   ];
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-
-    if (!token) {
-      router.push("/login");
-    }
+    (async () => {
+      const email = window.localStorage.getItem("email");
+      const res = await fetch(`http://localhost:8080/${email}/newGame`);
+    })();
   }, []);
 
   function nextPage(page: string) {
@@ -43,8 +48,10 @@ export default function page() {
     element?.scrollIntoView({ behavior: "smooth" });
   }
 
-  async function handleNewGame(route: string, apiRoute: string) {
-    const res = await fetch(`http://localhost:8080${apiRoute}/newGame`);
+  async function handleNewGame(route: string, apiRoute: string, email: string) {
+    const res = await fetch(
+      `http://localhost:8080${apiRoute}/${email}/newGame`
+    );
     if (res.ok) {
       router.push(`/${route}`);
       return "New Game Started!";
@@ -82,7 +89,10 @@ export default function page() {
         <div className="z-[99] h-[30rem] w-[30rem] border-2 border-white backdrop-blur-xl bg-transparent rounded-2xl flex flex-col justify-evenly items-center">
           <button
             onClick={() => {
-              handleNewGame("tictactoe", "");
+              const email = window.localStorage.getItem("email");
+              if (email) {
+                handleNewGame("tictactoe", "", email);
+              }
             }}
             className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-6 rounded-md"
           >
@@ -90,7 +100,10 @@ export default function page() {
           </button>
           <button
             onClick={() => {
-              handleNewGame("tictactoe/ffttt", "/fftictactoe");
+              const email = window.localStorage.getItem("email");
+              if (email) {
+                handleNewGame("tictactoe/ffttt", "/fftictactoe", email);
+              }
             }}
             className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-6 rounded-md"
           >
@@ -98,7 +111,10 @@ export default function page() {
           </button>
           <button
             onClick={() => {
-              handleNewGame("tictactoe/mttt", "/mtictactoe");
+              const email = window.localStorage.getItem("email");
+              if (email) {
+                handleNewGame("tictactoe/mttt", "/mtictactoe", email);
+              }
             }}
             className="z-[100] text-white text-[1.5rem] border-2 w-[65%] border-white p-6 rounded-md"
           >

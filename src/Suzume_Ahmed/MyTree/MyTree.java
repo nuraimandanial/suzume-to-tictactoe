@@ -4,14 +4,12 @@ import Suzume_Ahmed.MyStack.GenericStack;
 import Suzume_Ahmed.Pixel;
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.graph.Graph;
 
 import java.util.*;
-
 import java.io.IOException;
 
-import org.graphstream.algorithm.Dijkstra;
-import org.graphstream.algorithm.Dijkstra.Element;
-import org.graphstream.graph.Graph;
+
 
 
 public class MyTree<E, U> {
@@ -38,45 +36,62 @@ public class MyTree<E, U> {
         if(i >= 2) i = 0;
 
         try {
-            switch (labels[i++]) {
-                case "next1":
-                    current.next1 = newEle;
-                    break;
-                case "next2":
-                    current.next2 = newEle;
-                    break;
-                case "next3":
-                    current.next3 = newEle;
-                    break;
-            }
+            if(current.next1  == null)
+                current.next1 = newEle;
+            else if(current.next2  == null)
+                current.next2 = newEle;
+            else if(current.prev2 == null)
+                current.prev2 = newEle;
+//            //Extra leave
+//            if(current.next3  != null)
+//                current.next3 = newEle;
+
         } catch (NullPointerException ignored) {}
     }
 
-   /* public NodeA<E, U> getNode(NodeA<E, U> root, E element) {
+
+   /* public NodeA getNode(NodeA root, E element) {
         if (root == null) {
             return null;
         }
 
-        Deque<NodeA<E, U>> stack = new LinkedList<>();
-        stack.push(root);
+        Set<NodeA> visited = new HashSet<>();
+        return findNodeHelper(root, element, visited);
+    }
 
-        while (!stack.isEmpty()) {
-            NodeA<E, U> node = stack.pop();
-            if (node.element.equals(element)) {
-                return node;
-            }
-            if (node.next1 != null) {
-                stack.push(node.next1);
-            }
-            if (node.next2 != null) {
-                stack.push(node.next2);
-            }
-            if (node.next3 != null) {
-                stack.push(node.next3);
-            }
+    private NodeA findNodeHelper(NodeA node, E element, Set<NodeA> visited) {
+        if (node == null) {
+            return null;
         }
-        System.out.println("REsult not found when searched element " + element);
-        return null;
+
+        if (node.equals(element)) {
+            return node;
+        }
+
+        visited.add(node);
+
+        NodeA foundNode = null;
+        if (node.next1 != null && !visited.contains(node.next1)) {
+            foundNode = findNodeHelper(node.next1, element, visited);
+        }
+
+        if (foundNode == null && node.next2 != null && !visited.contains(node.next2)) {
+            foundNode = findNodeHelper(node.next2, element, visited);
+        }
+
+        if (foundNode == null && node.next3 != null && !visited.contains(node.next3)) {
+            foundNode = findNodeHelper(node.next3, element, visited);
+        }
+
+        if (foundNode == null && node.prev1 != null && !visited.contains(node.prev1)) {
+            foundNode = findNodeHelper(node.prev1, element, visited);
+        }
+
+        if (foundNode == null && node.prev2 != null && !visited.contains(node.prev2)) {
+            foundNode = findNodeHelper(node.prev2, element, visited);
+        }
+
+        return foundNode;
     }
 */
     public NodeA<E, U> getNode(NodeA<E, U> root, E element) {
@@ -103,11 +118,16 @@ public class MyTree<E, U> {
             if (node.next3 != null && !visited.contains(node.next3)) {
                 stack.push(node.next3);
             }
+            if (node.prev1 != null && !visited.contains(node.prev1)) {
+                stack.push(node.prev1);
+            }
+            if (node.prev2 != null && !visited.contains(node.prev2)) {
+                stack.push(node.prev2);
+            }
         }
         System.out.println("Result not found when searched element " + element);
         return null;
     }
-
 
     /*public void addPrev(E element, U prevEdge) {
         NodeA<E, U> newEle = new NodeA<>(element, prevEdge);
@@ -248,7 +268,7 @@ public class MyTree<E, U> {
 
                 System.out.println("head accessed");
                 tree.setAttribute("ui.stylesheet", "node { text-mode: normal; text-size: 20; text-offset: 25px, 5px; text-alignment: justify;} edge {text-size: 20;} node#\""+node.element+node.prevEdge+"\" {fill-color: red; text-size: 20;}" +
-                        "node#\"9,-19RIGHT\" {fill-color: yellow;}" + sheet +
+                        "node#\"19,-39RIGHT\" {fill-color: blue;}" + sheet +
                         "edge {arrow-shape: arrow; arrow-size: 9px,5px; text-alignment: along;}");
 
             }
@@ -256,7 +276,7 @@ public class MyTree<E, U> {
                 visited.push((String) node.element+node.prevEdge);
 
             System.out.print(node.element + " "); // print current node's value
-            if(iterations >= 500) return;
+            if(iterations >= 5000) return;
 
             //if(visited.contains((String) node.element)) {
                 displayTree(node.next1); // recursively display next1 node
@@ -412,33 +432,12 @@ public class MyTree<E, U> {
 
         //Adding nodes to the master one
         tree.addNodeAuto("20", "left"); //add to first
-        tree.addNodeAuto("5", "right"); //add to second
-        tree.addNodeAuto("6", "down"); //add to second
-
-        System.out.println("Tree height " + tree.current.height);
 
         tree.traverse("5", "right");
-        tree.current.station = true;
-        System.out.println("Tree height " + tree.current.height);
 
-        tree.addNodeAuto("50", "down");
-        System.out.println("height is " +  tree.current.height);
-
-        tree.addNodeAuto("100","up");
-        tree.addNodeAuto("101", "up");
+        tree.addNodeAuto("5", "vlue");
 
 
-
-
-        tree.traverse("100", "up");
-        System.out.println("height is " + MyTree.height);
-        tree.addNodeAuto("12", "newone");
-        tree.traverse("12", "newone");
-
-        tree.current.prev1 = tree.head;
-
-        tree.addNodeAuto("120", "down");
-        tree.traverse("120", "down");
 
 
 

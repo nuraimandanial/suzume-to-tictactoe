@@ -17,8 +17,10 @@ export default class ExtractLeaderBoardClass {
             .replace("]", '"]')
             .replaceAll(", ", '", "')
         );
-        const winLoseRatio = JSON.parse(data.winLoseRatio);
-        return { userName, winLoseRatio };
+        const score = JSON.parse(data.score);
+        const win = JSON.parse(data.win);
+        const lose = JSON.parse(data.lose);
+        return { userName, score, win, lose };
       }
     } catch (err) {
       console.log(err);
