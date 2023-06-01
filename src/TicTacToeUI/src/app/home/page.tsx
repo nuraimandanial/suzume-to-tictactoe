@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import TTT from "./(components)/ttt";
+import TTT from "./(components)/treblecross";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import NavBar from "../(components)/navBar";
@@ -21,7 +21,7 @@ export default function page() {
   const items = [
     {
       ID: [2, 1, 3],
-      GameName: "3 x 3 Regular Tic Tac Toe",
+      GameName: "Treblecross Tic Tac Toe",
       Page: <TTT />,
     },
     {
@@ -39,7 +39,9 @@ export default function page() {
   useEffect(() => {
     (async () => {
       const email = window.localStorage.getItem("email");
-      const res = await fetch(`http://localhost:8080/${email}/newGame`);
+      await fetch(`http://localhost:8080/treblecross/${email}/newGame`);
+      await fetch(`http://localhost:8080/fftictactoe/${email}/newGame`);
+      await fetch(`http://localhost:8080/mtictactoe/${email}/newGame`);
     })();
   }, []);
 
@@ -91,12 +93,12 @@ export default function page() {
             onClick={() => {
               const email = window.localStorage.getItem("email");
               if (email) {
-                handleNewGame("tictactoe", "", email);
+                handleNewGame("tictactoe/treblecross", "/treblecross", email);
               }
             }}
             className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-6 rounded-md"
           >
-            3 x 3 Regular <br /> Tic-Tac-Toe
+            Treblecross <br /> Tic-Tac-Toe
           </button>
           <button
             onClick={() => {
@@ -127,7 +129,7 @@ export default function page() {
           <section
             key={nanoid()}
             id={`page${item.ID[0]}`}
-            className="relative snap-center h-screen w-full flex flex-col justify-evenly items-center"
+            className="mt-[5rem] gap-10 relative snap-center h-screen w-full flex flex-col justify-center items-center"
           >
             <div
               onClick={() => {
@@ -165,7 +167,7 @@ export default function page() {
               </h1>
             </div>
 
-            <div className="flex justify-center items-cente">{item.Page}</div>
+            <div className="flex justify-center items-center">{item.Page}</div>
           </section>
         );
       })}

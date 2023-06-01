@@ -4,7 +4,7 @@ import NavBar from "../(components)/navBar";
 import Background from "./(components)/Background";
 import FFtictactoe from "./(components)/FFtictactoe";
 import Mtictactoe from "./(components)/Mtictactoe";
-import RegularTTT from "./(components)/regularTTT";
+import RegularTTT from "./(components)/treblecrossTicTacToe";
 
 export default function page() {
   const token = window.localStorage.getItem("token");

@@ -73,6 +73,24 @@ export default function page() {
     })();
   }, []);
 
+  async function handleBackMove() {
+    try {
+      const email = window.localStorage.getItem("email");
+      await fetch(`http://localhost:8080/mtictactoe/${email}/backMove`);
+      const res = await fetch(
+        `http://localhost:8080/mtictactoe/${email}/board`
+      );
+      const board = await res.json();
+
+      setTTT((prev) => ({
+        ...prev,
+        board: board,
+      }));
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async function handleChange(e: any) {
     try {
       const email = window.localStorage.getItem("email");
@@ -320,6 +338,25 @@ export default function page() {
           >
             Save
           </button>
+          <button
+            onClick={() => {
+              Swal.fire({
+                title: "Confirm Undo?",
+                text: "Only Noobs Do This!",
+                icon: "warning",
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  handleBackMove();
+                }
+              });
+            }}
+            className={`${Pop.className} ${
+              TTT.end.end ? "hidden" : gameType === "PvP" ? "hidden" : ""
+            } z-[3] font-bold p-[0.6rem_2rem] text-lg rounded-2xl border-2 border-black`}
+          >
+            Back
+          </button>
+
           <button
             onClick={handleRestart}
             className={`${Pop.className} ${

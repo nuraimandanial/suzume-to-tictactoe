@@ -79,4 +79,34 @@ export default class FetchingClass {
       body: JSON.stringify({ email }),
     });
   }
+
+  async FetchTreblecrossPVPMove(
+    whichRow: number,
+    email: string,
+    difficulty: String,
+    game: string,
+    turn: string
+  ) {
+    try {
+      const res = await fetch(`http://localhost:8080${game}/${email}/PVPMove`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          whichRow,
+          email,
+          difficulty,
+          turn,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return data.status;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
 }
