@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public class MisereTicTacToe {
   final private String PLAYER = "X";
   final private String AI = "O";
   private String difficulty;
+  private Stack<String[][]> previousMoveStack = new Stack<>();
   private Map<String, MisereTicTacToe> gameInstances = new HashMap<>();
 
   @Autowired
@@ -47,6 +49,14 @@ public class MisereTicTacToe {
     this.board = board;
   }
 
+  public Stack<String[][]> getPreviousMoveStack() {
+    return previousMoveStack;
+  }
+
+  public void setPreviousMoveStack(Stack<String[][]> previousMoveStack) {
+    this.previousMoveStack = previousMoveStack;
+  }
+
   public void printBoard() {
     System.out.println("-------------");
     for (int row = 0; row < board.length; row++) {
@@ -61,6 +71,19 @@ public class MisereTicTacToe {
       }
     }
     System.out.println("\n-------------");
+  }
+
+  @GetMapping("/{email}/backMove")
+  public void backMove(@PathVariable String email) {
+    MisereTicTacToe gameInstance = gameInstances.get(email);
+    if (!gameInstance.getPreviousMoveStack().isEmpty()) {
+      gameInstance.setBoard(gameInstance.getPreviousMoveStack().pop());
+      gameInstance.printBoard();
+      System.out.println("You take a back move!");
+    } else {
+      System.out.println("No more previous step!");
+    }
+
   }
 
   @PostMapping("/{email}/playerMove")
@@ -83,6 +106,11 @@ public class MisereTicTacToe {
         return ResponseEntity.ok("Invalid Move!");
       } else {
         String[][] board = gameInstance.getBoard2();
+        String[][] previousMove = new String[3][3];
+        for (int i = 0; i < 3; i++) {
+          System.arraycopy(board[i], 0, previousMove[i], 0, board[i].length);
+        }
+        gameInstance.getPreviousMoveStack().push(previousMove);
         board[move.getWhichRow()][move.getWhichCol()] = PLAYER;
         gameInstance.setBoard(board);
         int checkWinAfterAIMove = 404;
@@ -186,6 +214,7 @@ public class MisereTicTacToe {
       }
     }
     gameInstance.setBoard(board);
+    gameInstance.getPreviousMoveStack().clear();
     gameInstance.printBoard();
   }
 

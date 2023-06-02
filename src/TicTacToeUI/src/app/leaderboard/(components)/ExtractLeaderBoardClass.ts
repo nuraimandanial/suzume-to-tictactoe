@@ -1,6 +1,4 @@
 export default class ExtractLeaderBoardClass {
-  constructor() {}
-
   async ExtractLeaderBoard(game: string, difficulty: string) {
     try {
       const res = await fetch("http://localhost:8080/database/getleaderboard", {

@@ -1,3 +1,4 @@
+import PlayMusic from "./(components)/PlayMusic";
 import "./globals.css";
 import { Poppins } from "next/font/google";
 
@@ -18,7 +19,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={popins.className}>{children}</body>
+      <body className={popins.className}>
+        {children}
+        <audio id="audioClass" controls autoPlay hidden loop>
+          <source src="/onlymp3.to - Suzume no Tojimari  Theme Song  Trailer song-m3w1mUXtCj0-256k-1657457948088.mp3" />
+        </audio>
+        <div className="w-full flex justify-center items-center">
+          <PlayMusic />
+        </div>
+      </body>
     </html>
   );
 }
