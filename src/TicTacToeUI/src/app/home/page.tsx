@@ -88,7 +88,13 @@ export default function page() {
           </h1>
         </div>
 
-        <div className="z-[99] h-[30rem] w-[30rem] border-2 border-white backdrop-blur-xl bg-transparent rounded-2xl flex flex-col justify-evenly items-center">
+        <div className="z-[99] h-[30rem] w-[30rem] border-2 border-white backdrop-blur-xl bg-transparent rounded-2xl flex flex-col justify-around items-center py-4">
+          <a
+            href="/maze"
+            className="pointer-cursor z-[100] flex justify-center items-center text-white text-[1.5rem] w-[65%] border-2 border-white p-4 rounded-md"
+          >
+            Story Mode
+          </a>
           <button
             onClick={() => {
               const email = window.localStorage.getItem("email");
@@ -96,7 +102,7 @@ export default function page() {
                 handleNewGame("tictactoe/treblecross", "/treblecross", email);
               }
             }}
-            className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-6 rounded-md"
+            className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-4 rounded-md"
           >
             Treblecross <br /> Tic-Tac-Toe
           </button>
@@ -107,7 +113,7 @@ export default function page() {
                 handleNewGame("tictactoe/ffttt", "/fftictactoe", email);
               }
             }}
-            className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-6 rounded-md"
+            className="z-[100] text-white text-[1.5rem] w-[65%] border-2 border-white p-4 rounded-md"
           >
             5 x 5 Regular <br /> Tic-Tac-Toe
           </button>
@@ -118,7 +124,7 @@ export default function page() {
                 handleNewGame("tictactoe/mttt", "/mtictactoe", email);
               }
             }}
-            className="z-[100] text-white text-[1.5rem] border-2 w-[65%] border-white p-6 rounded-md"
+            className="z-[100] text-white text-[1.5rem] border-2 w-[65%] border-white p-4 rounded-md"
           >
             Misere Tic-Tac-Toc
           </button>

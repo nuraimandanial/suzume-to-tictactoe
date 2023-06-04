@@ -32,6 +32,39 @@ export default class FetchingClass {
     }
   }
 
+  async FetchPlayerMoveStory(
+    whichRow: number,
+    whichCol: number,
+    email: string,
+    difficulty: String,
+    game: string
+  ) {
+    try {
+      const res = await fetch(
+        `http://localhost:8080${game}/${email}/playerMoveStory`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            whichRow,
+            whichCol,
+            email,
+            difficulty: difficulty,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        return data.status;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async FetchPlayer2Move(
     whichRow: number,
     whichCol: number,
