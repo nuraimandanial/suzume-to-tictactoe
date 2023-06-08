@@ -101,11 +101,11 @@ public class Treblecross {
     System.out.println(gameInstance.getDifficultyString());
 
     if (gameInstance.getDifficultyString().equals("hard")) {
-      suboptimalProb = 0;
-    } else if (gameInstance.getDifficultyString().equals("medium")) {
       suboptimalProb = 0.5;
-    } else
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
       suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
 
     if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
         false) == 200) {
@@ -130,6 +130,7 @@ public class Treblecross {
         gameInstance.printBoard();
 
         if (checkWinAfterPlayerMove == 200) {
+          System.out.println(suboptimalProb);
           gameInstance.aiMove(suboptimalProb);
           gameInstance.printBoard();
           checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
@@ -343,9 +344,10 @@ public class Treblecross {
 
       }
       // Add randomness to the decision
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best -= (int) (Math.random() * 10) - 5;
+        }
       }
 
       return best - depth;
@@ -371,9 +373,10 @@ public class Treblecross {
         }
 
       }
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best += (int) (Math.random() * 10) + 5;
+        }
       }
 
       return best + depth;
@@ -381,7 +384,7 @@ public class Treblecross {
 
   }
 
-  public Move findBestMove(String board[][], double suboptimalProb) {
+  public Move findBestMove(String board[][], double suboptimalProb, String turn, boolean isMax) {
     int bestVal = Integer.MIN_VALUE;
     Move bestMove = new Move();
     bestMove.row = -1;
@@ -419,8 +422,42 @@ public class Treblecross {
   public void aiMove(double suboptimalProb) {
     setTurn("AI");
     Move bestMove = new Move();
-    bestMove = findBestMove(board, suboptimalProb);
+    bestMove = findBestMove(board, suboptimalProb, "AI", false);
     board[0][bestMove.row] = SYMBOL;
+  }
+
+  @PostMapping("/{email}/EvEAiMove")
+  public ResponseEntity<String> EvEAiMove(@RequestBody EveMove eve, @PathVariable String email) {
+    Treblecross gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
+    Move bestMove = new Move();
+    double suboptimalProb = 0;
+
+    if (gameInstance.getDifficultyString().equals("hard")) {
+      suboptimalProb = 0.5;
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
+      suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
+    if (gameInstance.checkTripleCross(board) == 200) {
+      bestMove = findBestMove(board, suboptimalProb, eve.getTurn(), eve.getIsMax());
+      if (gameInstance.checkValidMove(bestMove.row)) {
+        board[0][bestMove.row] = SYMBOL;
+        gameInstance.setBoard(board);
+        gameInstance.printBoard();
+        int winCode = gameInstance.checkTripleCross(board);
+        if (winCode == 1 && turn.equals("AI")) {
+          System.out.println("Computer 2 Win!");
+        } else if (winCode == 1 && turn.equals("PLAYER")) {
+          System.out.println("Computer 1 Win!");
+        }
+        return ResponseEntity.ok("{ \"winCode\": \" " + winCode + " \"}");
+      } else {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move");
+      }
+    }
+    return ResponseEntity.ok("{ \"winCode\": \" " + 0 + " \"}");
 
   }
 
@@ -691,5 +728,27 @@ class SettingDifficulty {
 
   public String getDifficulty() {
     return difficulty;
+  }
+}
+
+class EveMove {
+  private String turn;
+  private boolean isMax;
+
+  public EveMove(String turn, boolean isMax) {
+    this.turn = turn;
+    this.isMax = isMax;
+  }
+
+  public EveMove() {
+
+  }
+
+  public String getTurn() {
+    return turn;
+  }
+
+  public boolean getIsMax() {
+    return isMax;
   }
 }

@@ -97,6 +97,36 @@ export default class FetchingClass {
     }
   }
 
+  async FetchEvEMove(
+    email: string,
+    game: string,
+    turn: string,
+    isMax: boolean
+  ) {
+    try {
+      const res = await fetch(
+        `http://localhost:8080${game}/${email}/EvEAiMove`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            turn,
+            isMax,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        return data.winCode;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async FetchDifficulty(difficulty: string, game: string, email: string) {
     return await fetch(`http://localhost:8080${game}/${email}/difficulty`, {
       method: "POST",

@@ -96,7 +96,7 @@ public class FFtictactoe {
     if (gameInstance.getDifficultyString().equals("hard")) {
       suboptimalProb = 0;
     } else if (gameInstance.getDifficultyString().equals("medium")) {
-      suboptimalProb = 0.2;
+      suboptimalProb = 0.1;
     } else
       suboptimalProb = 0.5;
 
@@ -122,6 +122,7 @@ public class FFtictactoe {
         gameInstance.printBoard();
 
         if (checkWinAfterPlayerMove == 200) {
+          System.out.println(suboptimalProb);
           gameInstance.aiMove(suboptimalProb);
           gameInstance.printBoard();
 
@@ -141,6 +142,41 @@ public class FFtictactoe {
       }
     }
     return ResponseEntity.ok("Player Move successfully!");
+  }
+
+  @PostMapping("/{email}/EvEAiMove")
+  public ResponseEntity<String> EvEAiMove(@RequestBody EveMove eve, @PathVariable String email) {
+    FFtictactoe gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
+    Move bestMove = new Move();
+    double suboptimalProb = 0;
+
+    if (gameInstance.getDifficultyString().equals("hard")) {
+      suboptimalProb = 0.5;
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
+      suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
+    if (gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false) == 200) {
+      bestMove = findBestMove(board, suboptimalProb, eve.getTurn(), eve.getIsMax());
+      if (gameInstance.checkValidMove(bestMove.row, bestMove.col)) {
+        board[bestMove.row][bestMove.col] = eve.getTurn();
+        gameInstance.setBoard(board);
+        gameInstance.printBoard();
+        int winCode = gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false);
+        if (winCode == 1 && eve.getTurn().equals("X")) {
+          System.out.println("Computer 1 Win!");
+        } else if (winCode == 1 && eve.getTurn().equals("O")) {
+          System.out.println("Computer 2 Win!");
+        }
+        return ResponseEntity.ok("{ \"winCode\": \" " + winCode + " \"}");
+      } else {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move");
+      }
+    }
+    return ResponseEntity.ok("{ \"winCode\": \" " + 0 + " \"}");
+
   }
 
   @PostMapping("/{email}/playerMoveStory")
@@ -349,7 +385,7 @@ public class FFtictactoe {
     return 0;
   }
 
-  public int minimax(String board[][], int depth, int maxDepth, int alpha, int beta, boolean isMax,
+  public int minimax(String board[][], int depth, int maxDepth, boolean isMax,
       double suboptimalProb) {
 
     int score = evaluate(board);
@@ -383,16 +419,11 @@ public class FFtictactoe {
 
             // Call alpha-beta recursively and choose
             // the maximum value
-            best = Math.max(best, minimax(board, depth + 1, maxDepth, alpha, beta, !isMax, suboptimalProb));
-            alpha = Math.max(alpha, best);
+            best = Math.max(best, minimax(board, depth + 1, maxDepth, !isMax, suboptimalProb));
 
             // Undo the move
             board[i][j] = "-";
 
-            // Alpha-beta pruning
-            if (beta <= alpha) {
-              break;
-            }
           }
         }
       }
@@ -420,16 +451,13 @@ public class FFtictactoe {
 
             // Call alpha-beta recursively and choose
             // the minimum value
-            best = Math.min(best, minimax(board, depth + 1, maxDepth, alpha, beta, !isMax, suboptimalProb));
-            beta = Math.min(beta, best);
+            best = Math.min(best, minimax(board, depth + 1, maxDepth, !isMax, suboptimalProb));
 
             // Undo the move
             board[i][j] = "-";
 
             // Alpha-beta pruning
-            if (beta <= alpha) {
-              break;
-            }
+
           }
         }
       }
@@ -444,10 +472,9 @@ public class FFtictactoe {
     }
   }
 
-  public Move findBestMove(String board[][], double suboptimalProb) {
-    int bestVal = Integer.MIN_VALUE;
-    int alpha = Integer.MIN_VALUE;
-    int beta = Integer.MAX_VALUE;
+  public Move findBestMove(String board[][], double suboptimalProb, String turn, boolean isMax) {
+    int bestVal = Integer.MAX_VALUE;
+
     Move bestMove = new Move();
     bestMove.row = -1;
     bestMove.col = -1;
@@ -460,11 +487,11 @@ public class FFtictactoe {
         // Check if cell is empty
         if (board[i][j].equals("-")) {
           // Make the move
-          board[i][j] = PLAYER;
+          board[i][j] = turn;
 
           // compute evaluation function for this
           // move.
-          int moveVal = minimax(board, 0, 5, alpha, beta, false, suboptimalProb);
+          int moveVal = minimax(board, 0, 3, isMax, suboptimalProb);
 
           // Undo the move
           board[i][j] = "-";
@@ -473,19 +500,12 @@ public class FFtictactoe {
           // more than the best value, then update
           // best/
 
-          if (moveVal > bestVal) {
+          if (moveVal < bestVal) {
             bestMove.row = i;
             bestMove.col = j;
             bestVal = moveVal;
           }
 
-          // Update alpha value if the moveVal is greater than alpha
-          alpha = Math.max(alpha, moveVal);
-
-          // If beta becomes less than or equal to alpha, prune the remaining subtree
-          if (beta <= alpha) {
-            break;
-          }
         }
       }
     }
@@ -496,7 +516,7 @@ public class FFtictactoe {
   public void aiMove(double suboptimalProb) {
 
     Move bestMove = new Move();
-    bestMove = findBestMove(board, suboptimalProb);
+    bestMove = findBestMove(board, suboptimalProb, "AI", true);
     board[bestMove.row][bestMove.col] = AI;
     printBoard();
 
@@ -839,5 +859,27 @@ class SettingDifficulty {
 
   public String getDifficulty() {
     return difficulty;
+  }
+}
+
+class EveMove {
+  private String turn;
+  private boolean isMax;
+
+  public EveMove(String turn, boolean isMax) {
+    this.turn = turn;
+    this.isMax = isMax;
+  }
+
+  public EveMove() {
+
+  }
+
+  public String getTurn() {
+    return turn;
+  }
+
+  public boolean getIsMax() {
+    return isMax;
   }
 }

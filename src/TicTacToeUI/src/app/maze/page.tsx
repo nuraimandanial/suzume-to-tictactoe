@@ -45,8 +45,6 @@ let maze = [
   [1, 1, 1, 1, 1, 1, 1, 1, 0, 3],
 ];
 
-const originalMaze = maze;
-
 let station = ["Treblecross", "FFTicTacToe", "MisereTicTacToe"];
 let difficulty = "";
 

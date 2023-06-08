@@ -223,6 +223,63 @@ export default function page() {
     }
   }
 
+  async function handleEvEMove() {
+    try {
+      let turn;
+      let isMax;
+      if (round % 2 === 0) {
+        turn = "PLAYER";
+        isMax = true;
+      } else {
+        turn = "AI";
+        isMax = false;
+      }
+
+      const email = window.localStorage.getItem("email");
+      if (TTT.end.end !== true) {
+        const element = document.getElementById("selectDif");
+        element?.setAttribute("disabled", "true");
+
+        if (email) {
+          let isWin = await obj.FetchEvEMove(
+            email,
+            "/treblecross",
+            turn,
+            isMax
+          );
+          isWin = Number(isWin);
+
+          if (turn == "AI" && isWin == 1) {
+            isWin = -1;
+          }
+
+          const res = await fetch(
+            `http://localhost:8080/treblecross/${email}/board`
+          );
+          const board = await res.json();
+
+          setTTT((prev) => ({
+            ...prev,
+            board: board,
+          }));
+          console.log(isWin);
+          if (isWin === 1 || isWin === -1) {
+            setTimeout(() => {}, 200);
+            setTTT((prev) => ({
+              ...prev,
+              win: isWin === 1,
+              end: { status: isWin, end: true },
+              board: board,
+            }));
+          }
+          setRound((prev) => prev + 1);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async function handleRestart() {
     try {
       const email = window.localStorage.getItem("email");
@@ -295,9 +352,13 @@ export default function page() {
             return (
               <div
                 onClick={() => {
-                  gameType === "PvPC"
-                    ? handleClick(index, 0)
-                    : handlePVPMove(index);
+                  if (gameType === "PvPC") {
+                    handleClick(index, 0);
+                  } else if (gameType === "PvP") {
+                    handlePVPMove(index);
+                  } else if (gameType === "PCvPC") {
+                    ("");
+                  }
                 }}
                 key={nanoid()}
                 className={`${
@@ -334,21 +395,25 @@ export default function page() {
           </button>
           <button
             onClick={() => {
-              Swal.fire({
-                title: "Confirm Undo?",
-                text: "Only Noobs Do This!",
-                icon: "warning",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  handleBackMove();
-                }
-              });
+              if (gameType === "PvPC") {
+                Swal.fire({
+                  title: "Confirm Undo?",
+                  text: "Only Noobs Do This!",
+                  icon: "warning",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    handleBackMove();
+                  }
+                });
+              } else if (gameType === "PCvPC") {
+                handleEvEMove();
+              }
             }}
             className={`${Pop.className} ${
               TTT.end.end ? "hidden" : gameType === "PvP" ? "hidden" : ""
             } z-[3] font-bold p-[0.6rem_2rem] text-lg rounded-2xl border-2 border-black`}
           >
-            Back
+            {gameType === "PCvPC" ? "Next" : "Back"}
           </button>
 
           <button

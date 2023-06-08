@@ -28,7 +28,7 @@ export default function Popout({
         : status === 0
         ? "Tie!"
         : "";
-    } else {
+    } else if (gameType === "PvPC") {
       return status === 1
         ? "You Win!"
         : status === -1
@@ -36,6 +36,12 @@ export default function Popout({
         : status === 0
         ? "Tie!"
         : "";
+    } else {
+      return status === 1
+        ? "Computer 1 Win!"
+        : status === -1
+        ? "Computer 2 Win!"
+        : "Tie!";
     }
   }
 
@@ -50,7 +56,7 @@ export default function Popout({
           >
             <h1 className={`${Comfor.className} text-red-500`}>X</h1>
           </button>
-          <h1 className="text-5xl font-bold">{message}</h1>
+          <h1 className="text-5xl font-bold w-full text-center">{message}</h1>
         </div>
       )}
     </>

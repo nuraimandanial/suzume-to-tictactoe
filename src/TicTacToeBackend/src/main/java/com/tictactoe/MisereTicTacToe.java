@@ -92,9 +92,9 @@ public class MisereTicTacToe {
     double suboptimalProb = 0;
 
     if (gameInstance.getDifficultyString().equals("hard")) {
-      suboptimalProb = 0.02;
+      suboptimalProb = 0.0;
     } else if (gameInstance.getDifficultyString().equals("medium")) {
-      suboptimalProb = 0.2;
+      suboptimalProb = 0.3;
     } else
       suboptimalProb = 0.5;
 
@@ -222,6 +222,41 @@ public class MisereTicTacToe {
 
     }
     return ResponseEntity.ok("Player Move successfully!");
+  }
+
+  @PostMapping("/{email}/EvEAiMove")
+  public ResponseEntity<String> EvEAiMove(@RequestBody EveMove eve, @PathVariable String email) {
+    MisereTicTacToe gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
+    Move bestMove = new Move();
+    double suboptimalProb = 0;
+
+    if (gameInstance.getDifficultyString().equals("hard")) {
+      suboptimalProb = 0.5;
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
+      suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
+    if (gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false) == 200) {
+      bestMove = findBestMove(board, suboptimalProb, eve.getTurn(), eve.getIsMax());
+      if (gameInstance.checkValidMove(bestMove.row, bestMove.col)) {
+        board[bestMove.row][bestMove.col] = eve.getTurn();
+        gameInstance.setBoard(board);
+        gameInstance.printBoard();
+        int winCode = gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false);
+        if (winCode == 1 && eve.getTurn().equals("X")) {
+          System.out.println("Computer 1 Win!");
+        } else if (winCode == 1 && eve.getTurn().equals("O")) {
+          System.out.println("Computer 2 Win!");
+        }
+        return ResponseEntity.ok("{ \"winCode\": \" " + winCode + " \"}");
+      } else {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move");
+      }
+    }
+    return ResponseEntity.ok("{ \"winCode\": \" " + 0 + " \"}");
+
   }
 
   public boolean checkValidMove(int whichRow, int whichCol) {
@@ -375,9 +410,10 @@ public class MisereTicTacToe {
         }
       }
       // Add randomness to the decision
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best -= (int) (Math.random() * 10) - 5;
+        }
       }
 
       return best - depth;
@@ -404,17 +440,18 @@ public class MisereTicTacToe {
           }
         }
       }
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best += (int) (Math.random() * 10) + 5;
+        }
       }
 
       return best + depth;
     }
   }
 
-  public Move findBestMove(String board[][], double suboptimalProb) {
-    int bestVal = Integer.MIN_VALUE;
+  public Move findBestMove(String board[][], double suboptimalProb, String symbol, boolean isMax) {
+    int bestVal = Integer.MAX_VALUE;
     Move bestMove = new Move();
     bestMove.row = -1;
     bestMove.col = -1;
@@ -427,11 +464,11 @@ public class MisereTicTacToe {
         // Check if cell is empty
         if (board[i][j].equals("-")) {
           // Make the move
-          board[i][j] = PLAYER;
+          board[i][j] = symbol;
 
           // compute evaluation function for this
           // move.
-          int moveVal = minimax(board, 0, false, suboptimalProb);
+          int moveVal = minimax(board, 0, isMax, suboptimalProb);
 
           // Undo the move
           board[i][j] = "-";
@@ -440,7 +477,7 @@ public class MisereTicTacToe {
           // more than the best value, then update
           // best/
 
-          if (moveVal > bestVal) {
+          if (moveVal < bestVal) {
             bestMove.row = i;
             bestMove.col = j;
             bestVal = moveVal;
@@ -456,7 +493,7 @@ public class MisereTicTacToe {
   public void aiMove(double suboptimalProb) {
 
     Move bestMove = new Move();
-    bestMove = findBestMove(board, suboptimalProb);
+    bestMove = findBestMove(board, suboptimalProb, AI, true);
     board[bestMove.row][bestMove.col] = AI;
 
   }
@@ -745,5 +782,27 @@ class SettingDifficulty {
 
   public String getDifficulty() {
     return difficulty;
+  }
+}
+
+class EveMove {
+  private String turn;
+  private boolean isMax;
+
+  public EveMove(String turn, boolean isMax) {
+    this.turn = turn;
+    this.isMax = isMax;
+  }
+
+  public EveMove() {
+
+  }
+
+  public String getTurn() {
+    return turn;
+  }
+
+  public boolean getIsMax() {
+    return isMax;
   }
 }
