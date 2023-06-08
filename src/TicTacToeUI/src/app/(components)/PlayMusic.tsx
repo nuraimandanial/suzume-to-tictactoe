@@ -29,6 +29,8 @@ export default function PlayMusic() {
         <Image
           src={`${play ? "/pause.png" : "/play-button-arrowhead.png"}`}
           fill
+          priority
+          sizes="10vw"
           alt=""
         />
       </div>

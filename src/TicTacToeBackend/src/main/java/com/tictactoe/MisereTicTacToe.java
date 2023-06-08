@@ -141,6 +141,61 @@ public class MisereTicTacToe {
     return ResponseEntity.ok("Player Move successfully!");
   }
 
+  @PostMapping("/{email}/playerMoveStory")
+  public ResponseEntity<String> playerMoveStory(@RequestBody PlayerMoveClass move, @PathVariable String email) {
+    MisereTicTacToe gameInstance = gameInstances.get(email);
+    double suboptimalProb = 0;
+
+    if (move.getDifficulty().equals("hard")) {
+      suboptimalProb = 0.02;
+    } else if (move.getDifficulty().equals("medium")) {
+      suboptimalProb = 0.2;
+    } else
+      suboptimalProb = 0.5;
+
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
+        false) == 200) {
+
+      if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move!");
+      } else {
+        String[][] board = gameInstance.getBoard2();
+        String[][] previousMove = new String[3][3];
+        for (int i = 0; i < 3; i++) {
+          System.arraycopy(board[i], 0, previousMove[i], 0, board[i].length);
+        }
+        gameInstance.getPreviousMoveStack().push(previousMove);
+        board[move.getWhichRow()][move.getWhichCol()] = PLAYER;
+        gameInstance.setBoard(board);
+        int checkWinAfterAIMove = 404;
+        int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+            leaderBoardRepository, false);
+        gameInstance.printBoard();
+
+        if (checkWinAfterPlayerMove == 200) {
+          gameInstance.aiMove(suboptimalProb);
+          gameInstance.printBoard();
+
+          checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+              leaderBoardRepository, false);
+        }
+
+        if (checkWinAfterAIMove != 404) {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterAIMove
+              + " }");
+        } else {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterPlayerMove
+              + " }");
+        }
+
+      }
+    }
+    return ResponseEntity.ok("Player Move successfully!");
+  }
+
   @PostMapping("/{email}/PVPMove")
   public ResponseEntity<String> PVPMove(@RequestBody PvPClass move, @PathVariable String email) {
     MisereTicTacToe gameInstance = gameInstances.get(email);

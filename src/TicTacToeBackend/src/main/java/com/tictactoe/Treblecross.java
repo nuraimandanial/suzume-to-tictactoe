@@ -155,6 +155,68 @@ public class Treblecross {
     return ResponseEntity.ok("Player Move successfully!");
   }
 
+  @PostMapping("/{email}/playerMoveStory")
+  public ResponseEntity<String> playerMoveStory(@RequestBody PlayerMoveClass move, @PathVariable String email) {
+    Treblecross gameInstance = gameInstances.get(email);
+    gameInstance.setTurn("PLAYER");
+    double suboptimalProb = 0;
+    System.out.println(gameInstance.getDifficultyString());
+
+    if (move.getDifficulty().equals("hard")) {
+      suboptimalProb = 0;
+    } else if (move.getDifficulty().equals("medium")) {
+      suboptimalProb = 0.5;
+    } else
+      suboptimalProb = 0.7;
+
+    if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
+        false) == 200) {
+
+      if (!gameInstance.checkValidMove(move.getWhichRow())) {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move!");
+      } else {
+        String[][] board = gameInstance.getBoard2();
+        String[][] previousMove = new String[board.length][board[0].length];
+        System.arraycopy(board[0], 0, previousMove[0], 0, board[0].length);
+        gameInstance.getPreviousMoveStack().push(previousMove);
+        board[0][move.getWhichRow()] = SYMBOL;
+        gameInstance.setBoard(board);
+        int checkWinAfterAIMove = 404;
+        int checkWinAfterPlayerMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+            leaderBoardRepository, false);
+        if (checkWinAfterPlayerMove == 1) {
+          gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository, false);
+        }
+
+        gameInstance.printBoard();
+
+        if (checkWinAfterPlayerMove == 200) {
+          gameInstance.aiMove(suboptimalProb);
+          gameInstance.printBoard();
+          checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
+              leaderBoardRepository, false);
+          if (checkWinAfterAIMove == -1) {
+            gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository, false);
+          }
+        }
+
+        if (checkWinAfterAIMove != 404) {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterAIMove
+              + " }");
+        } else {
+          return ResponseEntity.ok("{\"status\": "
+              + checkWinAfterPlayerMove
+              + " }");
+        }
+
+      }
+
+    }
+    return ResponseEntity.ok("Player Move successfully!");
+  }
+
   @PostMapping("/{email}/PVPMove")
   public ResponseEntity<String> PVPMove(@RequestBody PvPClassTreblecross move, @PathVariable String email) {
     Treblecross gameInstance = gameInstances.get(email);
