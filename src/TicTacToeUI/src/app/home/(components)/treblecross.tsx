@@ -19,6 +19,7 @@ export default function TTT() {
     gameId: [],
     difficulty: [],
     gameType: [],
+    name: [],
     email: "",
   });
 
@@ -39,6 +40,7 @@ export default function TTT() {
             gameId: board.id,
             difficulty: board.difficulty,
             gameType: board.game,
+            name: board.name,
           }));
         }
       })();
@@ -53,19 +55,15 @@ export default function TTT() {
     }
   }
 
-  async function handleLoadGame(
-    board: Array<Array<String>>,
-    difficulty: string,
-    id: number,
-    game: string
-  ) {
+  async function handleLoadGame(id: number, game: string) {
+    console.log(id);
     const email = window.localStorage.getItem("email");
     const res = await fetch(
       `http://localhost:8080/treblecross/${email}/loadgame`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ board, difficulty }),
+        body: JSON.stringify({ id: id.toString() }),
       }
     );
 
@@ -130,7 +128,7 @@ export default function TTT() {
                   className="snap-center w-[70rem] z-[3] font-extrabold flex flex-col justify-center place-items-center"
                 >
                   <h1 className="text-3xl font-bold mb-8 uppercase">
-                    {loadGameCriteria.difficulty[index]}
+                    {`${loadGameCriteria.name[index]} ( ${loadGameCriteria.difficulty[index]} )`}
                   </h1>
                   <div className="grid grid-rows-1 grid-flow-col">
                     {insideBoard.flat(1).map((lastBoard, index2) => {
@@ -170,8 +168,6 @@ export default function TTT() {
                         }).then((result) => {
                           if (result.isConfirmed) {
                             handleLoadGame(
-                              insideBoard,
-                              loadGameCriteria.difficulty[index],
                               loadGameCriteria.gameId[index],
                               loadGameCriteria.gameType[index]
                             );

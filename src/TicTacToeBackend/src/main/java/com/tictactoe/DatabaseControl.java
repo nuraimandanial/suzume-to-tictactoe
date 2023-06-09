@@ -111,14 +111,18 @@ public class DatabaseControl {
       ArrayList<Integer> savedGameId = new ArrayList<>();
       ArrayList<String> savedGameDifficulty = new ArrayList<>();
       ArrayList<String> savedGameType = new ArrayList<>();
+      ArrayList<String> savedGameName = new ArrayList<>();
+
       for (int i = 0; i < intersected.size(); i++) {
         savedGameString.add(Arrays.deepToString(intersected.get(i).getBoard()));
         savedGameId.add(intersected.get(i).getId());
         savedGameDifficulty.add(intersected.get(i).getDifficulty());
         savedGameType.add(intersected.get(i).getGame());
+        savedGameName.add(intersected.get(i).getName());
       }
       return ResponseEntity.ok("{\"board\": \"" + savedGameString + "\", \"id\": \"" + savedGameId
-          + "\", \"difficulty\": \"" + savedGameDifficulty + "\", \"game\": \"" + savedGameType + "\"}");
+          + "\", \"difficulty\": \"" + savedGameDifficulty + "\", \"game\": \"" + savedGameType + "\", \"name\": \""
+          + savedGameName + "\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"message\": \"Fail to load!\"}");
     }

@@ -135,11 +135,11 @@ export default class FetchingClass {
     });
   }
 
-  async FetchSaveGame(email: string, game: string) {
+  async FetchSaveGame(email: string, game: string, name: string) {
     await fetch(`http://localhost:8080${game}/${email}/savegame`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, name }),
     });
   }
 

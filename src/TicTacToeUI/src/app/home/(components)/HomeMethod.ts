@@ -26,6 +26,12 @@ export default class HomeMethod {
             .replace("]", '"]')
             .replaceAll(", ", '", "')
         ),
+        name: JSON.parse(
+          data.name
+            .replace("[", '["')
+            .replace("]", '"]')
+            .replaceAll(", ", '", "')
+        ),
       };
     } catch (err) {
       console.log(err);

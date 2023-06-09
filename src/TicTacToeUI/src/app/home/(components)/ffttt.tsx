@@ -19,6 +19,7 @@ export default function FFTTT() {
     gameId: [],
     difficulty: [],
     gameType: [],
+    name: [],
     email: "",
   });
 
@@ -39,6 +40,7 @@ export default function FFTTT() {
             gameId: board.id,
             difficulty: board.difficulty,
             gameType: board.game,
+            name: board.name,
           }));
         }
       })();
@@ -53,19 +55,14 @@ export default function FFTTT() {
     }
   }
 
-  async function handleLoadGame(
-    board: Array<Array<String>>,
-    difficulty: string,
-    id: number,
-    game: string
-  ) {
+  async function handleLoadGame(id: number, game: string) {
     const email = window.localStorage.getItem("email");
     const res = await fetch(
       `http://localhost:8080/fftictactoe/${email}/loadgame`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ board, difficulty }),
+        body: JSON.stringify({ id: id.toString() }),
       }
     );
 
@@ -127,7 +124,7 @@ export default function FFTTT() {
                   className="snap-center w-[40rem] z-[3] flex flex-col font-extrabold justify-center place-items-center"
                 >
                   <h1 className="text-3xl font-bold mb-8 uppercase">
-                    {loadGameCriteria.difficulty[index]}
+                    {`${loadGameCriteria.name[index]} ( ${loadGameCriteria.difficulty[index]} )`}
                   </h1>
 
                   <div className="grid grid-cols-[4rem_4rem_4rem_4rem_4rem]">
@@ -200,8 +197,6 @@ export default function FFTTT() {
                         }).then((result) => {
                           if (result.isConfirmed) {
                             handleLoadGame(
-                              insideBoard,
-                              loadGameCriteria.difficulty[index],
                               loadGameCriteria.gameId[index],
                               loadGameCriteria.gameType[index]
                             );

@@ -292,15 +292,24 @@ export default function page() {
   }
 
   async function handleSave() {
-    try {
-      const email = window.localStorage.getItem("email");
-      if (email) {
-        await obj.FetchSaveGame(email, "/mtictactoe");
-        handleRestart();
+    const email = window.localStorage.getItem("email");
+    Swal.fire({
+      title: "Please enter game name",
+      input: "text",
+      showCancelButton: true,
+      confirmButtonText: "Save",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          if (email) {
+            await obj.FetchSaveGame(email, "/mtictactoe", result.value);
+            handleRestart();
+          }
+        } catch (err) {
+          console.log(err);
+        }
       }
-    } catch (err) {
-      console.log(err);
-    }
+    });
   }
 
   return (

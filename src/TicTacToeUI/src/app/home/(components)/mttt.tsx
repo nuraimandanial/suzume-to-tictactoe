@@ -19,6 +19,7 @@ export default function MTTT() {
     gameId: [],
     difficulty: [],
     gameType: [],
+    name: [],
     email: "",
   });
 
@@ -39,6 +40,7 @@ export default function MTTT() {
             gameId: board.id,
             difficulty: board.difficulty,
             gameType: board.game,
+            name: board.name,
           }));
         }
       })();
@@ -53,19 +55,14 @@ export default function MTTT() {
     }
   }
 
-  async function handleLoadGame(
-    board: Array<Array<String>>,
-    difficulty: string,
-    id: number,
-    game: string
-  ) {
+  async function handleLoadGame(id: number, game: string) {
     const email = window.localStorage.getItem("email");
     const res = await fetch(
       `http://localhost:8080/mtictactoe/${email}/loadgame`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ board, difficulty }),
+        body: JSON.stringify({ id: id.toString() }),
       }
     );
 
@@ -127,7 +124,7 @@ export default function MTTT() {
                   className="snap-center w-[40rem] z-[3] font-extrabold flex flex-col justify-center place-items-center"
                 >
                   <h1 className="text-3xl font-bold mb-8 uppercase">
-                    {loadGameCriteria.difficulty[index]}
+                    {`${loadGameCriteria.name[index]} ( ${loadGameCriteria.difficulty[index]} )`}
                   </h1>
                   <div className="grid grid-cols-[6rem_6rem_6rem]">
                     {insideBoard.flat(1).map((lastBoard, index2) => {
@@ -179,8 +176,6 @@ export default function MTTT() {
                         }).then((result) => {
                           if (result.isConfirmed) {
                             handleLoadGame(
-                              insideBoard,
-                              loadGameCriteria.difficulty[index],
                               loadGameCriteria.gameId[index],
                               loadGameCriteria.gameType[index]
                             );

@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @RestController
 @RequestMapping("/mtictactoe")
 @CrossOrigin
@@ -554,6 +558,15 @@ public class MisereTicTacToe {
       saved.setBoard(gameInstance.getBoard2());
       saved.setDifficulty(gameInstance.getDifficultyString());
       saved.setGame("mttt");
+      saved.setName(boardToSave.getName());
+      ObjectMapper objectMapper = new ObjectMapper();
+      String JsonString = "";
+      try {
+        JsonString = objectMapper.writeValueAsString(gameInstance.getPreviousMoveStack());
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
+      saved.setPreviousMove(JsonString);
       savedGameRepository.save(saved);
       return ResponseEntity.ok("{\"message\": \"Successfully Saved!\"}");
     }
@@ -562,10 +575,25 @@ public class MisereTicTacToe {
   @PostMapping("/{email}/loadgame")
   public ResponseEntity<String> loadGame(@RequestBody BoardLoaded loadedBoard, @PathVariable String email) {
     MisereTicTacToe gameInstance = gameInstances.get(email);
-    gameInstance.setBoard(loadedBoard.getBoard());
-    gameInstance.setDifficulty2(loadedBoard.getDifficulty());
+    List<SavedGame> savedGame = savedGameRepository.findById(loadedBoard.getId());
+    if (!savedGame.isEmpty()) {
+      gameInstance.setBoard(savedGame.get(0).getBoard());
+      gameInstance.setDifficulty2(savedGame.get(0).getDifficulty());
+      ObjectMapper objectMapper = new ObjectMapper();
+      Stack<String[][]> PreviousMoveStack;
+      try {
+        PreviousMoveStack = objectMapper.readValue(savedGame.get(0).getPreviousMove(),
+            new TypeReference<Stack<String[][]>>() {
+            });
+        gameInstance.setPreviousMoveStack(PreviousMoveStack);
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
 
-    return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+      return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
+    }
   }
 
   public <E> List<E> intersection(List<E> emailList, List<E> gameList) {
@@ -716,53 +744,40 @@ class PvPClass {
 
 class BoardSaved {
   private String email;
+  private String name;
 
   public BoardSaved() {
 
   }
 
-  public BoardSaved(String email) {
+  public BoardSaved(String email, String name) {
     this.email = email;
+    this.name = name;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
+  public String getName() {
+    return name;
   }
 }
 
 class BoardLoaded {
-  private String[][] board;
-  private String difficulty;
+  private String id;
 
   public BoardLoaded() {
 
   }
 
-  public BoardLoaded(String[][] board, String difficulty) {
-    this.board = board;
-    this.difficulty = difficulty;
+  public BoardLoaded(String id) {
+    this.id = id;
   }
 
-  public String[][] getBoard() {
-    return board;
+  public String getId() {
+    return id;
   }
-
-  public void setBoard(String[][] board) {
-    this.board = board;
-  }
-
-  public String getDifficulty() {
-    return difficulty;
-  }
-
-  public void setDifficulty(String difficulty) {
-    this.difficulty = difficulty;
-  }
-
 }
 
 class SettingDifficulty {

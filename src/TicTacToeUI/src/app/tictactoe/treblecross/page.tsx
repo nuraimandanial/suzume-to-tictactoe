@@ -304,14 +304,18 @@ export default function page() {
 
   async function handleSave() {
     const email = window.localStorage.getItem("email");
-    try {
-      if (email) {
-        await obj.FetchSaveGame(email, "/treblecross");
-        handleRestart();
+    Swal.fire({title:"Please enter game name",input:"text",showCancelButton:true,confirmButtonText:"Save"}).then(async (result) => {
+      if(result.isConfirmed){
+        try {
+          if (email) {
+            await obj.FetchSaveGame(email, "/treblecross", result.value);
+            handleRestart();
+          }
+        } catch (err) {
+          console.log(err);
+        }
       }
-    } catch (err) {
-      console.log(err);
-    }
+    })
   }
 
   return (
