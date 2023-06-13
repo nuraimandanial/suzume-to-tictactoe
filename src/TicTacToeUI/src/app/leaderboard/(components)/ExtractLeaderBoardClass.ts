@@ -16,6 +16,7 @@ export default class ExtractLeaderBoardClass {
             .replaceAll(", ", '", "')
         );
         const score = JSON.parse(data.score);
+
         const win = JSON.parse(data.win);
         const lose = JSON.parse(data.lose);
         return { userName, score, win, lose };

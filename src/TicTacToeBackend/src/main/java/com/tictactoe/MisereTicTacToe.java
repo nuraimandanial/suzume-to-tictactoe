@@ -622,7 +622,7 @@ public class MisereTicTacToe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
           intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
@@ -647,7 +647,7 @@ public class MisereTicTacToe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int loseTime = intersected.get(0).getLose();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
           intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));

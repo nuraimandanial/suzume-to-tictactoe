@@ -257,7 +257,7 @@ export default function page() {
             ...prev,
             board: board,
           }));
-          console.log(isWin);
+
           if (isWin === 1 || isWin === -1 || isWin === 0) {
             setTimeout(() => {}, 200);
             setTTT((prev) => ({

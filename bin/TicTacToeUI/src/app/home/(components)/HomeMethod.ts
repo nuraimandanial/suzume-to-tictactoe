@@ -42,7 +42,7 @@ export default class HomeMethod {
       const data = await res.json();
       return data.message;
     } catch (err) {
-      console.log(err);
+      err;
     }
   }
 }

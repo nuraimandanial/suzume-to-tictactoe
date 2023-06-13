@@ -40,8 +40,8 @@ public class LeaderBoard {
   @Column(name = "lose")
   private int lose = 0;
 
-  @Column(name = "score")
-  private int score = 0;
+  @Column(name = "score", columnDefinition = "double default 0")
+  private double score = 0;
 
   public Integer getId() {
     return id;
@@ -91,11 +91,11 @@ public class LeaderBoard {
     this.lose = lose;
   }
 
-  public Integer getScore() {
+  public Double getScore() {
     return this.score;
   }
 
-  public void setScore(int score) {
+  public void setScore(double score) {
     this.score = score;
   }
 }

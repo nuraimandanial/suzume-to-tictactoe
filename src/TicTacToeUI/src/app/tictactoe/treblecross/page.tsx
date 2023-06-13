@@ -137,7 +137,7 @@ export default function page() {
             ...prev,
             board: board,
           }));
-          console.log(isWin);
+
           if (isWin === 1 || isWin === 0 || isWin === -1) {
             if (isWin === 1) {
               setTTT((prev) => ({
@@ -262,7 +262,7 @@ export default function page() {
             ...prev,
             board: board,
           }));
-          console.log(isWin);
+
           if (isWin === 1 || isWin === -1) {
             setTimeout(() => {}, 200);
             setTTT((prev) => ({
@@ -304,8 +304,13 @@ export default function page() {
 
   async function handleSave() {
     const email = window.localStorage.getItem("email");
-    Swal.fire({title:"Please enter game name",input:"text",showCancelButton:true,confirmButtonText:"Save"}).then(async (result) => {
-      if(result.isConfirmed){
+    Swal.fire({
+      title: "Please enter game name",
+      input: "text",
+      showCancelButton: true,
+      confirmButtonText: "Save",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
         try {
           if (email) {
             await obj.FetchSaveGame(email, "/treblecross", result.value);
@@ -315,7 +320,7 @@ export default function page() {
           console.log(err);
         }
       }
-    })
+    });
   }
 
   return (

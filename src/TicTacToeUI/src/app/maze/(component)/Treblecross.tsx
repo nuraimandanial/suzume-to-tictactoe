@@ -18,7 +18,6 @@ export default function Treblecross({
   setTicTacToe: Function;
   difficulty: string;
 }) {
-  console.log(difficulty);
   const obj = new FetchingClass();
   const [TTT, setTTT] = useState({
     board: [[]],
@@ -87,7 +86,7 @@ export default function Treblecross({
             ...prev,
             board: board,
           }));
-          console.log(isWin);
+
           if (isWin === 1 || isWin === 0 || isWin === -1) {
             if (isWin === 1) {
               setTTT((prev) => ({
@@ -97,16 +96,13 @@ export default function Treblecross({
                 board: board,
               }));
               setTicTacToe(1);
+              const element = document.getElementById(
+                "Treblecross"
+              ) as HTMLDivElement;
+              element.style.display = "none";
+              handleRestart();
               Swal.fire({
                 title: "You Win!",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  const element = document.getElementById(
-                    "Treblecross"
-                  ) as HTMLDivElement;
-                  element.style.display = "none";
-                  handleRestart();
-                }
               });
             } else {
               setTTT((prev) => ({
@@ -116,16 +112,13 @@ export default function Treblecross({
                 board: board,
               }));
               setTicTacToe(-1);
+              const element = document.getElementById(
+                "Treblecross"
+              ) as HTMLDivElement;
+              element.style.display = "none";
+              handleRestart();
               Swal.fire({
                 title: "You Lose!",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  const element = document.getElementById(
-                    "Treblecross"
-                  ) as HTMLDivElement;
-                  element.style.display = "none";
-                  handleRestart();
-                }
               });
             }
           }
@@ -141,7 +134,7 @@ export default function Treblecross({
       id="Treblecross"
       className="fixed w-full h-screen overflow-hidden grid place-items-center bg-transparent"
     >
-      <div className="w-[40rem] h-[40rem] flex flex-col justify-center items-center gap-10 backdrop-blur-lg p-10 rounded-lg border-1 border-black">
+      <div className="w-[1080px] h-[540px] translate-x-[120px] translate-y-[-30px] flex flex-col justify-center items-center gap-10 backdrop-blur-lg p-10 rounded-md border-1 border-black">
         <h1 className="text-2xl font-bold">Treblecross</h1>
         <div
           className={`${Comfor.className} z-[3] rounded-2xl font-extrabold grid grid-rows-1 grid-flow-col justify-center`}

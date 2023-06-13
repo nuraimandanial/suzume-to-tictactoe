@@ -59,7 +59,7 @@ export default function Mtictactoe() {
   return (
     <section
       id="leaderboardpage3"
-      className="relative snap-center h-screen w-full flex flex-col justify-center items-center gap-14 py-2"
+      className="pt-10 relative snap-center h-screen w-full flex flex-col justify-center items-center gap-14 py-2"
     >
       <ScrollButton boardID="leaderboardcarou3" />
       <h1 className="z-[100] text-white text-4xl font-extrabold">
@@ -131,7 +131,7 @@ export default function Mtictactoe() {
                               {(item[5] as number[])[index]}
                             </td>
                             <td className="px-6 py-4 dark:text-white">
-                              {(item[3] as number[])[index]}
+                              {(item[3] as number[])[index].toFixed(0)}
                             </td>
                           </tr>
                         );

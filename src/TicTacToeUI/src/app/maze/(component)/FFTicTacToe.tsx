@@ -95,16 +95,13 @@ export default function FFTicTacToe({
                 board: board,
               }));
               setTicTacToe(1);
+              const element = document.getElementById(
+                "FFTicTacToe"
+              ) as HTMLDivElement;
+              element.style.display = "none";
+              handleRestart();
               Swal.fire({
                 title: "You Win!",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  const element = document.getElementById(
-                    "FFTicTacToe"
-                  ) as HTMLDivElement;
-                  element.style.display = "none";
-                  handleRestart();
-                }
               });
             } else {
               setTimeout(() => {}, 200);
@@ -115,16 +112,13 @@ export default function FFTicTacToe({
                 board: board,
               }));
               setTicTacToe(-1);
+              const element = document.getElementById(
+                "FFTicTacToe"
+              ) as HTMLDivElement;
+              element.style.display = "none";
+              handleRestart();
               Swal.fire({
                 title: "You Lose!",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  const element = document.getElementById(
-                    "FFTicTacToe"
-                  ) as HTMLDivElement;
-                  element.style.display = "none";
-                  handleRestart();
-                }
               });
             }
           }
@@ -140,7 +134,7 @@ export default function FFTicTacToe({
       id="FFTicTacToe"
       className="fixed w-full h-screen overflow-hidden grid place-items-center bg-transparent"
     >
-      <div className="w-[40rem] h-[40rem] flex flex-col justify-center items-center gap-10 backdrop-blur-lg p-10 rounded-lg border-1 border-black">
+      <div className="w-[1080px] h-[540px] translate-x-[120px] translate-y-[-30px] flex flex-col justify-center items-center gap-10 backdrop-blur-lg p-10 rounded-md border-1 border-black">
         <h1 className="text-2xl font-bold">5x5 Regular Tic Tac Toe</h1>
         <div
           className={`${Comfor.className} z-[3] rounded-2xl font-extrabold grid grid-cols-[4.5rem_4.5rem_4.5rem_4.5rem_4.5rem] justify-center`}

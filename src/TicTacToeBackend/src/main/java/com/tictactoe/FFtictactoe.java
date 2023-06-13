@@ -94,7 +94,6 @@ public class FFtictactoe {
   @PostMapping("/{email}/playerMove")
   public ResponseEntity<String> playerMove(@RequestBody PlayerMoveClass move, @PathVariable String email) {
     FFtictactoe gameInstance = gameInstances.get(email);
-    System.out.println(gameInstance.getDifficultyString());
     double suboptimalProb = 0;
 
     if (gameInstance.getDifficultyString().equals("hard")) {
@@ -186,7 +185,6 @@ public class FFtictactoe {
   @PostMapping("/{email}/playerMoveStory")
   public ResponseEntity<String> playerMoveStory(@RequestBody PlayerMoveClass move, @PathVariable String email) {
     FFtictactoe gameInstance = gameInstances.get(email);
-    System.out.println(gameInstance.getDifficultyString());
     double suboptimalProb = 0;
 
     if (move.getDifficulty().equals("hard")) {
@@ -563,13 +561,19 @@ public class FFtictactoe {
             board[row + 1][col].equals(board[row + 2][col])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           }
 
           else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
         }
@@ -583,13 +587,19 @@ public class FFtictactoe {
             && board[row + 1][col + 1].equals(board[row + 2][col + 2])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           }
 
           else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
         }
@@ -602,11 +612,17 @@ public class FFtictactoe {
             && board[row + 1][col - 1].equals(board[row + 2][col - 2])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           } else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
         }
@@ -700,7 +716,7 @@ public class FFtictactoe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
           intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
@@ -725,7 +741,7 @@ public class FFtictactoe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int loseTime = intersected.get(0).getLose();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
           intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));

@@ -66,7 +66,7 @@ export default function RegularTTT() {
   return (
     <section
       id="leaderboardpage1"
-      className="relative snap-center h-screen w-full flex flex-col justify-center items-center gap-14 py-2"
+      className="pt-10 relative snap-center h-screen w-full flex flex-col justify-center items-center gap-14 py-2"
     >
       <ScrollButton boardID="leaderboardcarou" />
       <h1 className="z-[99] text-white text-4xl font-extrabold">
@@ -138,7 +138,7 @@ export default function RegularTTT() {
                               {(item[5] as number[])[index]}
                             </td>
                             <td className="px-6 py-4 dark:text-white">
-                              {(item[3] as number[])[index]}
+                              {(item[3] as number[])[index].toFixed(0)}
                             </td>
                           </tr>
                         );
