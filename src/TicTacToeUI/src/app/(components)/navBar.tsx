@@ -12,7 +12,7 @@ export default function NavBar() {
           onClick={() => {
             router.push("/home");
           }}
-          className="p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl"
+          className="p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl w-[12rem]"
         >
           Home
         </button>
@@ -20,7 +20,7 @@ export default function NavBar() {
           onClick={() => {
             router.push("/leaderboard");
           }}
-          className="p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl"
+          className="p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl w-[12rem]"
         >
           Leader Board
         </button>
@@ -38,7 +38,7 @@ export default function NavBar() {
               window.localStorage.removeItem("username");
               router.push("/login");
             }}
-            className="p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl"
+            className="p-[0.5rem_1.5rem] w-[12rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl"
           >
             Log out{" "}
           </button>

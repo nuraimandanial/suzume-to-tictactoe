@@ -28,11 +28,17 @@ public class SavedGame {
   @Column(name = "SAVEGAME")
   private String[][] board;
 
+  @Column(name = "previousMove")
+  private String previousMove;
+
   @Column(name = "difficulty")
   private String difficulty;
 
   @Column(name = "game")
   private String game;
+
+  @Column(name = "name")
+  private String name;
 
   public Integer getId() {
     return id;
@@ -72,5 +78,21 @@ public class SavedGame {
 
   public void setGame(String game) {
     this.game = game;
+  }
+
+  public String getName() {
+    return this.name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getPreviousMove() {
+    return this.previousMove;
+  }
+
+  public void setPreviousMove(String previousMove) {
+    this.previousMove = previousMove;
   }
 }

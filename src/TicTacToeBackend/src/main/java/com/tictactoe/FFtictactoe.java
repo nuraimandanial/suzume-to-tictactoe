@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @RestController
 @RequestMapping("/fftictactoe")
 @CrossOrigin
@@ -90,13 +94,12 @@ public class FFtictactoe {
   @PostMapping("/{email}/playerMove")
   public ResponseEntity<String> playerMove(@RequestBody PlayerMoveClass move, @PathVariable String email) {
     FFtictactoe gameInstance = gameInstances.get(email);
-    System.out.println(gameInstance.getDifficultyString());
     double suboptimalProb = 0;
 
     if (gameInstance.getDifficultyString().equals("hard")) {
       suboptimalProb = 0;
     } else if (gameInstance.getDifficultyString().equals("medium")) {
-      suboptimalProb = 0.2;
+      suboptimalProb = 0.1;
     } else
       suboptimalProb = 0.5;
 
@@ -122,6 +125,7 @@ public class FFtictactoe {
         gameInstance.printBoard();
 
         if (checkWinAfterPlayerMove == 200) {
+          System.out.println(suboptimalProb);
           gameInstance.aiMove(suboptimalProb);
           gameInstance.printBoard();
 
@@ -143,10 +147,44 @@ public class FFtictactoe {
     return ResponseEntity.ok("Player Move successfully!");
   }
 
+  @PostMapping("/{email}/EvEAiMove")
+  public ResponseEntity<String> EvEAiMove(@RequestBody EveMove eve, @PathVariable String email) {
+    FFtictactoe gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
+    Move bestMove = new Move();
+    double suboptimalProb = 0;
+
+    if (gameInstance.getDifficultyString().equals("hard")) {
+      suboptimalProb = 0.5;
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
+      suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
+    if (gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false) == 200) {
+      bestMove = findBestMove(board, suboptimalProb, eve.getTurn(), eve.getIsMax());
+      if (gameInstance.checkValidMove(bestMove.row, bestMove.col)) {
+        board[bestMove.row][bestMove.col] = eve.getTurn();
+        gameInstance.setBoard(board);
+        gameInstance.printBoard();
+        int winCode = gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false);
+        if (winCode == 1 && eve.getTurn().equals("X")) {
+          System.out.println("Computer 1 Win!");
+        } else if (winCode == 1 && eve.getTurn().equals("O")) {
+          System.out.println("Computer 2 Win!");
+        }
+        return ResponseEntity.ok("{ \"winCode\": \" " + winCode + " \"}");
+      } else {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move");
+      }
+    }
+    return ResponseEntity.ok("{ \"winCode\": \" " + 0 + " \"}");
+
+  }
+
   @PostMapping("/{email}/playerMoveStory")
   public ResponseEntity<String> playerMoveStory(@RequestBody PlayerMoveClass move, @PathVariable String email) {
     FFtictactoe gameInstance = gameInstances.get(email);
-    System.out.println(gameInstance.getDifficultyString());
     double suboptimalProb = 0;
 
     if (move.getDifficulty().equals("hard")) {
@@ -349,7 +387,7 @@ public class FFtictactoe {
     return 0;
   }
 
-  public int minimax(String board[][], int depth, int maxDepth, int alpha, int beta, boolean isMax,
+  public int minimax(String board[][], int depth, int maxDepth, boolean isMax,
       double suboptimalProb) {
 
     int score = evaluate(board);
@@ -383,16 +421,11 @@ public class FFtictactoe {
 
             // Call alpha-beta recursively and choose
             // the maximum value
-            best = Math.max(best, minimax(board, depth + 1, maxDepth, alpha, beta, !isMax, suboptimalProb));
-            alpha = Math.max(alpha, best);
+            best = Math.max(best, minimax(board, depth + 1, maxDepth, !isMax, suboptimalProb));
 
             // Undo the move
             board[i][j] = "-";
 
-            // Alpha-beta pruning
-            if (beta <= alpha) {
-              break;
-            }
           }
         }
       }
@@ -420,16 +453,13 @@ public class FFtictactoe {
 
             // Call alpha-beta recursively and choose
             // the minimum value
-            best = Math.min(best, minimax(board, depth + 1, maxDepth, alpha, beta, !isMax, suboptimalProb));
-            beta = Math.min(beta, best);
+            best = Math.min(best, minimax(board, depth + 1, maxDepth, !isMax, suboptimalProb));
 
             // Undo the move
             board[i][j] = "-";
 
             // Alpha-beta pruning
-            if (beta <= alpha) {
-              break;
-            }
+
           }
         }
       }
@@ -444,10 +474,9 @@ public class FFtictactoe {
     }
   }
 
-  public Move findBestMove(String board[][], double suboptimalProb) {
-    int bestVal = Integer.MIN_VALUE;
-    int alpha = Integer.MIN_VALUE;
-    int beta = Integer.MAX_VALUE;
+  public Move findBestMove(String board[][], double suboptimalProb, String turn, boolean isMax) {
+    int bestVal = Integer.MAX_VALUE;
+
     Move bestMove = new Move();
     bestMove.row = -1;
     bestMove.col = -1;
@@ -460,11 +489,11 @@ public class FFtictactoe {
         // Check if cell is empty
         if (board[i][j].equals("-")) {
           // Make the move
-          board[i][j] = PLAYER;
+          board[i][j] = turn;
 
           // compute evaluation function for this
           // move.
-          int moveVal = minimax(board, 0, 5, alpha, beta, false, suboptimalProb);
+          int moveVal = minimax(board, 0, 3, isMax, suboptimalProb);
 
           // Undo the move
           board[i][j] = "-";
@@ -473,19 +502,12 @@ public class FFtictactoe {
           // more than the best value, then update
           // best/
 
-          if (moveVal > bestVal) {
+          if (moveVal < bestVal) {
             bestMove.row = i;
             bestMove.col = j;
             bestVal = moveVal;
           }
 
-          // Update alpha value if the moveVal is greater than alpha
-          alpha = Math.max(alpha, moveVal);
-
-          // If beta becomes less than or equal to alpha, prune the remaining subtree
-          if (beta <= alpha) {
-            break;
-          }
         }
       }
     }
@@ -496,7 +518,7 @@ public class FFtictactoe {
   public void aiMove(double suboptimalProb) {
 
     Move bestMove = new Move();
-    bestMove = findBestMove(board, suboptimalProb);
+    bestMove = findBestMove(board, suboptimalProb, "AI", true);
     board[bestMove.row][bestMove.col] = AI;
     printBoard();
 
@@ -539,13 +561,19 @@ public class FFtictactoe {
             board[row + 1][col].equals(board[row + 2][col])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           }
 
           else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
         }
@@ -559,13 +587,19 @@ public class FFtictactoe {
             && board[row + 1][col + 1].equals(board[row + 2][col + 2])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           }
 
           else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
         }
@@ -578,11 +612,17 @@ public class FFtictactoe {
             && board[row + 1][col - 1].equals(board[row + 2][col - 2])) {
           if (board[row][col].equals(PLAYER)) {
             System.out.println("You Win!");
-            saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, true, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return 1;
           } else if (board[row][col].equals(AI)) {
             System.out.println("You Lose!");
-            saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            if (willSave) {
+              saveWinLoseDatabase(email, false, difficulty, userRepository, leaderBoardRepository);
+            }
+
             return -1;
           }
         }
@@ -611,6 +651,15 @@ public class FFtictactoe {
       saved.setBoard(gameInstance.getBoard2());
       saved.setDifficulty(gameInstance.getDifficultyString());
       saved.setGame("ffttt");
+      saved.setName(boardToSave.getName());
+      ObjectMapper objectMapper = new ObjectMapper();
+      String JsonString = "";
+      try {
+        JsonString = objectMapper.writeValueAsString(gameInstance.getPreviousMoveStack());
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
+      saved.setPreviousMove(JsonString);
       savedGameRepository.save(saved);
       return ResponseEntity.ok("{\"message\": \"Successfully Saved!\"}");
     }
@@ -619,10 +668,26 @@ public class FFtictactoe {
   @PostMapping("/{email}/loadgame")
   public ResponseEntity<String> loadGame(@RequestBody BoardLoaded loadedBoard, @PathVariable String email) {
     FFtictactoe gameInstance = gameInstances.get(email);
-    gameInstance.setBoard(loadedBoard.getBoard());
-    gameInstance.setDifficulty2(loadedBoard.getDifficulty());
+    List<SavedGame> savedGame = savedGameRepository.findById(loadedBoard.getId());
+    if (!savedGame.isEmpty()) {
+      gameInstance.setBoard(savedGame.get(0).getBoard());
+      gameInstance.setDifficulty2(savedGame.get(0).getDifficulty());
+      ObjectMapper objectMapper = new ObjectMapper();
+      Stack<String[][]> PreviousMoveStack;
+      try {
+        PreviousMoveStack = objectMapper.readValue(savedGame.get(0).getPreviousMove(),
+            new TypeReference<Stack<String[][]>>() {
+            });
+        gameInstance.setPreviousMoveStack(PreviousMoveStack);
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
 
-    return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+      return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
+    }
+
   }
 
   public <E> List<E> intersection(List<E> emailList, List<E> gameList) {
@@ -651,7 +716,7 @@ public class FFtictactoe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
           intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
@@ -676,7 +741,7 @@ public class FFtictactoe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int loseTime = intersected.get(0).getLose();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
           intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));
@@ -773,53 +838,40 @@ class PvPClass {
 
 class BoardSaved {
   private String email;
+  private String name;
 
   public BoardSaved() {
 
   }
 
-  public BoardSaved(String email) {
+  public BoardSaved(String email, String name) {
     this.email = email;
+    this.name = name;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
+  public String getName() {
+    return name;
   }
 }
 
 class BoardLoaded {
-  private String[][] board;
-  private String difficulty;
+  private String id;
 
   public BoardLoaded() {
 
   }
 
-  public BoardLoaded(String[][] board, String difficulty) {
-    this.board = board;
-    this.difficulty = difficulty;
+  public BoardLoaded(String id) {
+    this.id = id;
   }
 
-  public String[][] getBoard() {
-    return board;
+  public String getId() {
+    return id;
   }
-
-  public void setBoard(String[][] board) {
-    this.board = board;
-  }
-
-  public String getDifficulty() {
-    return difficulty;
-  }
-
-  public void setDifficulty(String difficulty) {
-    this.difficulty = difficulty;
-  }
-
 }
 
 class SettingDifficulty {
@@ -839,5 +891,27 @@ class SettingDifficulty {
 
   public String getDifficulty() {
     return difficulty;
+  }
+}
+
+class EveMove {
+  private String turn;
+  private boolean isMax;
+
+  public EveMove(String turn, boolean isMax) {
+    this.turn = turn;
+    this.isMax = isMax;
+  }
+
+  public EveMove() {
+
+  }
+
+  public String getTurn() {
+    return turn;
+  }
+
+  public boolean getIsMax() {
+    return isMax;
   }
 }

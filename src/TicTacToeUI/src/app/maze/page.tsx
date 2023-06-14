@@ -9,54 +9,226 @@ import { useRouter } from "next/navigation";
 import ImageNext from "next/image";
 import NavBar from "../(components)/navBar";
 
-const player = {
-  x: 0,
-  y: 0,
-};
-
-const prevStep = {
-  x: 0,
-  y: 0,
-};
-
-let game = "";
-let winCode = 0;
-
-let maze = [
-  [0, 0, 2, 0, 0, 0, 1, 1, 1, 1],
-  [0, 1, 0, 1, 1, 0, 0, 0, 1, 1],
-  [0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
-  [0, 1, 0, 1, 1, 0, 0, 2, 0, 1],
-  [0, 1, 0, 1, 1, 2, 0, 1, 0, 1],
-  [0, 1, 0, 1, 1, 0, 1, 1, 0, 1],
-  [0, 1, 0, 0, 0, 0, 1, 1, 0, 1],
-  [0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-  [0, 1, 0, 1, 1, 1, 1, 0, 0, 1],
-  [0, 0, 0, 1, 1, 1, 1, 0, 1, 1],
-  [0, 1, 1, 1, 1, 0, 0, 0, 0, 1],
-  [0, 1, 1, 0, 0, 2, 1, 1, 0, 1],
-  [0, 1, 1, 0, 1, 0, 0, 1, 0, 0],
-  [0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
-  [0, 1, 1, 0, 1, 1, 0, 1, 0, 0],
-  [2, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-  [0, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-  [0, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 0, 3],
-];
-
-const originalMaze = maze;
-
-let station = ["Treblecross", "FFTicTacToe", "MisereTicTacToe"];
-let difficulty = "";
-
 export default function page() {
   const router = useRouter();
-  const [win, setWin] = useState(0);
-  const [gameType, setGameType] = useState(game);
+  const [maze, setMaze] = useState([
+    [9, 0, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 0, 0, 0, 1, 1, 1, 1],
+    [0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1],
+    [0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
+    [0, 1, 0, 1, 1, 0, 0, 2, 0, 1, 0, 1, 0, 1, 1, 0, 0, 2, 0, 1],
+    [0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1],
+    [0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1],
+    [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+    [0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1],
+    [0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 2, 1, 0, 0, 1],
+    [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1],
+    [0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+    [0, 1, 1, 0, 0, 2, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 2, 0, 1],
+    [0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0],
+    [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
+    [0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0],
+    [2, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],
+    [0, 0, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 0, 0, 0, 1, 1, 1, 1],
+    [0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 2, 0, 0, 1, 1],
+    [0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
+    [0, 1, 0, 1, 1, 0, 0, 2, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
+    [0, 1, 0, 1, 1, 2, 0, 1, 0, 1, 0, 1, 0, 1, 1, 2, 0, 0, 0, 1],
+    [0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1],
+    [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+    [0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+    [0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1],
+    [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1],
+    [0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [0, 1, 1, 0, 0, 2, 1, 1, 0, 1, 0, 1, 1, 0, 0, 2, 1, 1, 0, 1],
+    [0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0],
+    [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
+    [0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0],
+    [2, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+    [0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 3],
+  ]);
+  const [difficulty, setDifficulty] = useState("");
+  const [refresh, setRefresh] = useState(false);
+  const [win, setWin] = useState(404);
+  const [gameType, setGameType] = useState("");
+  const [restart, setRestart] = useState(false);
+  const [initialUpdate, setInitialUpdate] = useState(false);
+  const [credentials, setCredentials] = useState({
+    winNumber: 0,
+    loseNumber: 0,
+    score: 0.0,
+    path: 0,
+  });
 
-  useEffect(() => {
-    (async () => {
+  async function handleRestart() {
+    const email = localStorage.getItem("email");
+    await fetch(`http://localhost:8080/connectingthedots/${email}/restart`);
+    const resMap = await fetch(
+      `http://localhost:8080/connectingthedots/${email}/map`
+    );
+    const dataMap = await resMap.json();
+    const map = JSON.parse(dataMap.Map);
+    setMaze(map);
+    setWin(404);
+    setDifficulty("");
+    setGameType("");
+    setRestart((prev) => !prev);
+    setCredentials({
+      winNumber: 0,
+      loseNumber: 0,
+      score: 0,
+      path: 0,
+    });
+  }
+
+  async function handleBack() {
+    const email = localStorage.getItem("email");
+
+    await fetch(
+      `http://localhost:8080/connectingthedots/${email}/takeBackStep`
+    );
+
+    const resMap = await fetch(
+      `http://localhost:8080/connectingthedots/${email}/map`
+    );
+    const dataMap = await resMap.json();
+    const map = JSON.parse(dataMap.Map);
+    setMaze(map);
+    setRefresh((prev) => !prev);
+  }
+
+  async function handleNext() {
+    const email = localStorage.getItem("email");
+
+    const res = await fetch(
+      `http://localhost:8080/connectingthedots/${email}/move`
+    );
+    let data = await res.json();
+
+    // unremark this to enable GOD MODE!!!!
+    /* if (data === 1 || data === 2 || data === 3) {
+      data = 2;
+    } */
+
+    const resMap = await fetch(
+      `http://localhost:8080/connectingthedots/${email}/map`
+    );
+    const dataMap = await resMap.json();
+    const map = JSON.parse(dataMap.Map);
+    setMaze(map);
+
+    if (data === 1) {
+      (document.getElementById("nextBtn") as HTMLButtonElement).disabled = true;
+      (document.getElementById("backBtn") as HTMLButtonElement).disabled = true;
+      await Swal.fire({
+        title: "You Arrived at a Station!",
+        html: "Play <b>Treblecross</b> to Pass the Station!",
+        timer: 2000,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        background: "black",
+        color: "white",
+        backdrop: `
+        url("/pokemon.gif")
+        fixed
+        center
+        center
+        / cover
+        no-repeat
+      `,
+      });
+
+      setGameType("Treblecross");
+      (document.getElementById("Treblecross") as HTMLDivElement).style.display =
+        "grid";
+    } else if (data === 2) {
+      (document.getElementById("nextBtn") as HTMLButtonElement).disabled = true;
+      (document.getElementById("backBtn") as HTMLButtonElement).disabled = true;
+      await Swal.fire({
+        title: "You Arrived at a Station!",
+        html: "Play <b>FFTicTacToe</b> to Pass the Station!",
+        timer: 2000,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        background: "black",
+        color: "white",
+        backdrop: `
+        url("/pokemon.gif")
+        fixed
+        center
+        center
+        / cover
+        no-repeat
+      `,
+      });
+      setGameType("FFTicTacToe");
+      (document.getElementById("FFTicTacToe") as HTMLDivElement).style.display =
+        "grid";
+    } else if (data === 3) {
+      (document.getElementById("nextBtn") as HTMLButtonElement).disabled = true;
+      (document.getElementById("backBtn") as HTMLButtonElement).disabled = true;
+      await Swal.fire({
+        title: "You Arrived at a Station!",
+        html: "Play <b>MisereTicTacToe</b> to Pass the Station!",
+        timer: 2000,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        background: "black",
+        color: "white",
+        backdrop: `
+        url("/pokemon.gif")
+        fixed
+        center
+        center
+        / cover
+        no-repeat
+      `,
+      });
+      setGameType("MisereTicTacToe");
+      (
+        document.getElementById("MisereTicTacToe") as HTMLDivElement
+      ).style.display = "grid";
+    } else if (data === 0) {
+      Swal.fire({
+        title: "You Win!",
+        icon: "success",
+        allowOutsideClick: false,
+        confirmButtonText: "New Game?",
+        showDenyButton: true,
+        denyButtonText: "Back to Home?",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleRestart();
+        } else if (result.isDenied) {
+          router.push("/home");
+        }
+      });
+    }
+    setRefresh((prev) => !prev);
+  }
+
+  async function handleSave(name: string) {
+    const email = localStorage.getItem("email");
+    await fetch(
+      `http://localhost:8080/connectingthedots/${email}/save/${name}`
+    );
+  }
+
+  async function getDif() {
+    const email = localStorage.getItem("email");
+    const res = await fetch(
+      `http://localhost:8080/connectingthedots/${email}/getdifficulty`
+    );
+
+    const dif = await res.json();
+
+    if (dif.difficulty === "None") {
       const { value: diff } = await Swal.fire({
         title: "Difficulty",
         input: "select",
@@ -74,313 +246,237 @@ export default function page() {
             if (value === "") {
               resolve("You need to select a difficulty!");
             } else {
+              (async () => {
+                await fetch(
+                  `http://localhost:8080/connectingthedots/${email}/difficulty/${value}`
+                );
+              })();
+              // @ts-ignore
               resolve();
             }
           });
         },
       });
 
-      difficulty = diff;
-    })();
-    const doorImage = new Image();
-    doorImage.src = "/door.png";
+      const { value: pathOption } = await Swal.fire({
+        title: "Paths",
+        input: "select",
+        allowOutsideClick: false,
+        inputOptions: {
+          Paths: {
+            0: "Path 1",
+            1: "Path 2",
+            2: "Path 3",
+            3: "Path 4",
+            4: "Path 5",
+            5: "Path 6",
+          },
+        },
+        inputPlaceholder: "Select a Path",
+        inputValidator: (value) => {
+          return new Promise((resolve) => {
+            if (value === "") {
+              resolve("You need to select a path!");
+            } else {
+              // @ts-ignore
+              resolve();
+            }
+          });
+        },
+      });
 
-    const suzume = new Image();
-    suzume.src = "/suzume.png";
+      await fetch(
+        `http://localhost:8080/connectingthedots/${email}/selectPath/${pathOption}`
+      );
+      setCredentials((prev) => ({
+        ...prev,
+        path: Number(pathOption) + 1,
+      }));
+      setDifficulty(diff);
+    } else {
+      setDifficulty(dif.difficulty);
+      const resPath = await fetch(
+        `http://localhost:8080/connectingthedots/${email}/getPathNumber`
+      );
 
-    const wall = new Image();
-    wall.src = "/pixel_wall.png";
+      const path = await resPath.json();
 
-    const endpoint = new Image();
-    endpoint.src = "/endpoint.png";
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-
-    const numRows = maze.length;
-    const numCols = maze[0].length;
-
-    const cellWidth = canvas.width / numCols;
-    const cellHeight = canvas.height / numRows;
-    suzume.onload = () => {
-      ctx.drawImage(suzume, 0, 0, cellWidth, cellHeight);
-    };
-
-    wall.onload = () => {
-      for (let i = 0; i < numRows; i++) {
-        for (let j = 0; j < numCols; j++) {
-          if (maze[i][j] === 1) {
-            ctx.drawImage(
-              wall,
-              cellWidth * j,
-              cellHeight * i,
-              cellWidth,
-              cellHeight
-            );
-          }
-        }
-      }
-    };
-
-    doorImage.onload = () => {
-      for (let i = 0; i < numRows; i++) {
-        for (let j = 0; j < numCols; j++) {
-          if (maze[i][j] === 2) {
-            ctx.drawImage(
-              doorImage,
-              cellWidth * j,
-              cellHeight * i,
-              cellWidth,
-              cellHeight
-            );
-          }
-        }
-      }
-    };
-
-    endpoint.onload = () => {
-      for (let i = 0; i < numRows; i++) {
-        for (let j = 0; j < numCols; j++) {
-          if (maze[i][j] === 3) {
-            ctx.drawImage(
-              endpoint,
-              cellWidth * j,
-              cellHeight * i,
-              cellWidth,
-              cellHeight
-            );
-          }
-        }
-      }
-    };
-
-    function draw(x: number, y: number) {
-      ctx.drawImage(suzume, x, y, cellWidth, cellHeight);
+      setCredentials((prev) => ({
+        ...prev,
+        path: path.path,
+      }));
     }
-
-    function clear(x: number, y: number) {
-      ctx.clearRect(x, y, cellWidth, cellHeight);
-    }
-
-    function arriveStation() {
-      if (maze[player.y / cellHeight][player.x / cellWidth] === 2) {
-        station = shuffleArray(station);
-        game = station[0];
-        setGameType(game);
-
-        const element = document.getElementById(game);
-        if (element) {
-          element.style.display = "grid";
-        }
-      } else {
-        game = "";
-      }
-    }
-
-    function shuffleArray(array: Array<string>) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function arriveEndPoint() {
-      if (maze[player.y / cellHeight][player.x / cellWidth] === 3) {
-        Swal.fire({
-          title: "Congratulation! You Win!",
-          allowOutsideClick: false,
-        }).then((value) => {
-          if (value.isConfirmed) {
-            Swal.fire({
-              title: "Play Again?",
-              showConfirmButton: true,
-              showDenyButton: true,
-              confirmButtonText: "Yes",
-              denyButtonText: "No",
-              allowOutsideClick: false,
-            }).then((value) => {
-              if (value.isConfirmed) {
-                window.location.reload();
-              } else if (value.isDenied) {
-                router.push("/home");
-              }
-            });
-          }
-        });
-      }
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case "ArrowUp":
-          if (
-            !(player.y - cellHeight < 0) &&
-            maze[(player.y - cellHeight) / cellHeight][player.x / cellWidth] !==
-              1 &&
-            game === "" &&
-            winCode === 0
-          ) {
-            prevStep.x = player.x;
-            prevStep.y = player.y;
-            clear(player.x, player.y);
-            player.y -= cellHeight;
-            arriveStation();
-            draw(player.x, player.y);
-          } else if (
-            !(player.y - cellHeight < 0) &&
-            maze[(player.y - cellHeight) / cellHeight][player.x / cellWidth] !==
-              1 &&
-            winCode === 1
-          ) {
-            clear(player.x, player.y);
-            player.y -= cellHeight;
-            draw(player.x, player.y);
-            winCode = 0;
-            game = "";
-          }
-          arriveEndPoint();
-          break;
-        case "ArrowDown":
-          if (
-            player.y + cellHeight < canvas.height &&
-            maze[(player.y + cellHeight) / cellHeight][player.x / cellWidth] !==
-              1 &&
-            game === "" &&
-            winCode === 0
-          ) {
-            prevStep.x = player.x;
-            prevStep.y = player.y;
-            clear(player.x, player.y);
-            player.y += cellHeight;
-            arriveStation();
-            draw(player.x, player.y);
-          } else if (
-            player.y + cellHeight < canvas.height &&
-            maze[(player.y + cellHeight) / cellHeight][player.x / cellWidth] !==
-              1 &&
-            winCode === 1
-          ) {
-            clear(player.x, player.y);
-            player.y += cellHeight;
-            draw(player.x, player.y);
-            winCode = 0;
-            game = "";
-          }
-          arriveEndPoint();
-          break;
-        case "ArrowLeft":
-          if (
-            !(player.x - cellWidth < 0) &&
-            maze[player.y / cellHeight][(player.x - cellWidth) / cellWidth] !==
-              1 &&
-            game === "" &&
-            winCode === 0
-          ) {
-            prevStep.x = player.x;
-            prevStep.y = player.y;
-            clear(player.x, player.y);
-            player.x -= cellWidth;
-            arriveStation();
-            draw(player.x, player.y);
-          } else if (
-            !(player.x - cellWidth < 0) &&
-            maze[player.y / cellHeight][(player.x - cellWidth) / cellWidth] !==
-              1 &&
-            winCode === 1
-          ) {
-            clear(player.x, player.y);
-            player.x -= cellWidth;
-            draw(player.x, player.y);
-            winCode = 0;
-            game = "";
-          }
-          arriveEndPoint();
-          break;
-        case "ArrowRight":
-          if (
-            player.x + cellWidth < canvas.width &&
-            maze[player.y / cellHeight][(player.x + cellWidth) / cellWidth] !==
-              1 &&
-            game === "" &&
-            winCode === 0
-          ) {
-            prevStep.x = player.x;
-            prevStep.y = player.y;
-            clear(player.x, player.y);
-            player.x += cellWidth;
-            arriveStation();
-            draw(player.x, player.y);
-          } else if (
-            player.x + cellWidth < canvas.width &&
-            maze[player.y / cellHeight][(player.x + cellWidth) / cellWidth] !==
-              1 &&
-            winCode === 1
-          ) {
-            clear(player.x, player.y);
-            player.x += cellWidth;
-            draw(player.x, player.y);
-            winCode = 0;
-            game = "";
-          }
-          arriveEndPoint();
-          break;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  }
 
   useEffect(() => {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const email = localStorage.getItem("email");
 
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    if (win !== 404) {
+      (async () => {
+        const actionCode = await fetch(
+          `http://localhost:8080/connectingthedots/${email}/action/${win}`
+        );
 
-    const numRows = maze.length;
-    const numCols = maze[0].length;
+        const actionData = await actionCode.json();
 
-    const cellWidth = canvas.width / numCols;
-    const cellHeight = canvas.height / numRows;
+        if (actionData === -1) {
+          Swal.fire({
+            title: "You Lose!",
+            icon: "error",
+            allowOutsideClick: false,
+            confirmButtonText: "Restart?",
+            showDenyButton: true,
+            denyButtonText: "Back to Home?",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              handleRestart();
+            } else if (result.isDenied) {
+              router.push("/home");
+            }
+          });
+        }
 
-    const suzume = new Image();
-    suzume.src = "/suzume.png";
+        const res = await fetch(
+          `http://localhost:8080/connectingthedots/${email}/map`
+        );
+        const data = await res.json();
+        const map = JSON.parse(data.Map);
+        setMaze(map);
+        setWin(404);
+        (document.getElementById("nextBtn") as HTMLButtonElement).disabled =
+          false;
+        (document.getElementById("backBtn") as HTMLButtonElement).disabled =
+          false;
+      })();
+    } else {
+      (async () => {
+        if (difficulty === "") {
+          await getDif();
+          const res = await fetch(
+            `http://localhost:8080/connectingthedots/${email}/map`
+          );
+          const data = await res.json();
+          const map = JSON.parse(data.Map);
+          setMaze(map);
+        }
 
-    const doorImage = new Image();
-    doorImage.src = "/door.png";
+        const resWin = await fetch(
+          `http://localhost:8080/connectingthedots/${email}/getwin`
+        );
+        const resLose = await fetch(
+          `http://localhost:8080/connectingthedots/${email}/getlose`
+        );
+        const resScore = await fetch(
+          `http://localhost:8080/connectingthedots/${email}/getscore`
+        );
 
-    function draw(x: number, y: number) {
-      suzume.onload = () => {
-        ctx.drawImage(suzume, x, y, cellWidth, cellHeight);
-      };
+        const dataWin = await resWin.json();
+        const dataLose = await resLose.json();
+        const dataScore = await resScore.json();
+
+        setCredentials((prev) => ({
+          ...prev,
+          winNumber: dataWin.win,
+          loseNumber: dataLose.lose,
+          score: dataScore.score,
+        }));
+
+        const res = await fetch(
+          `http://localhost:8080/connectingthedots/${email}/map`
+        );
+        const data = await res.json();
+        const maze = JSON.parse(data.Map);
+        setMaze(maze);
+
+        const doorImage = new Image();
+        doorImage.src = "/door.png";
+
+        const suzume = new Image();
+        suzume.src = "/suzume.png";
+
+        const wall = new Image();
+        wall.src = "/pixel_wall.png";
+
+        const endpoint = new Image();
+        endpoint.src = "/endpoint.png";
+        const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+
+        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const numRows = maze.length;
+        const numCols = maze[0].length;
+
+        const cellWidth = canvas.width / numCols;
+        const cellHeight = canvas.height / numRows;
+        suzume.onload = () => {
+          for (let i = 0; i < numRows; i++) {
+            for (let j = 0; j < numCols; j++) {
+              if (maze[i][j] === 9) {
+                ctx.drawImage(
+                  suzume,
+                  cellWidth * j,
+                  cellHeight * i,
+                  cellWidth,
+                  cellHeight
+                );
+              }
+            }
+          }
+        };
+
+        wall.onload = () => {
+          for (let i = 0; i < numRows; i++) {
+            for (let j = 0; j < numCols; j++) {
+              if (maze[i][j] === 1) {
+                ctx.drawImage(
+                  wall,
+                  cellWidth * j,
+                  cellHeight * i,
+                  cellWidth,
+                  cellHeight
+                );
+              }
+            }
+          }
+        };
+
+        doorImage.onload = () => {
+          for (let i = 0; i < numRows; i++) {
+            for (let j = 0; j < numCols; j++) {
+              if (maze[i][j] === 2) {
+                ctx.drawImage(
+                  doorImage,
+                  cellWidth * j,
+                  cellHeight * i,
+                  cellWidth,
+                  cellHeight
+                );
+              }
+            }
+          }
+        };
+
+        endpoint.onload = () => {
+          for (let i = 0; i < numRows; i++) {
+            for (let j = 0; j < numCols; j++) {
+              if (maze[i][j] === 3) {
+                ctx.drawImage(
+                  endpoint,
+                  cellWidth * j,
+                  cellHeight * i,
+                  cellWidth,
+                  cellHeight
+                );
+              }
+            }
+          }
+        };
+      })();
     }
 
-    function clear(x: number, y: number) {
-      ctx.clearRect(x, y, cellWidth, cellHeight);
-    }
-
-    if (win === 1) {
-      winCode = 1;
-      clear(player.x, player.y);
-      draw(player.x, player.y);
-      const stationFiltered = station.filter((element) => element !== game);
-      station = stationFiltered;
-      maze[player.y / cellHeight][player.x / cellWidth] = 0;
-      setWin(0);
-    } else if (win === -1) {
-      clear(player.x, player.y);
-
-      ctx.drawImage(doorImage, player.x, player.y, cellWidth, cellHeight);
-
-      draw(prevStep.x, prevStep.y);
-      player.x = prevStep.x;
-      player.y = prevStep.y;
-      setWin(0);
-      winCode = 0;
-      game = "";
-    }
-  }, [win]);
+    setInitialUpdate(true);
+  }, [initialUpdate, refresh, win, restart]);
 
   return (
     <>
@@ -394,20 +490,107 @@ export default function page() {
       <div className="w-full h-screen overflow-hidden bg-black opacity-30 z-[2] fixed"></div>
       <NavBar />
       <div className="relative z-[100] w-full h-screen overflow-hidden flex flex-col items-center justify-center gap-4 pt-[5rem]">
-        <h1 className="text-[2rem] text-white font-extrabold">
-          Connecting the Dots
-        </h1>
+        <div className="flex items-center gap-10">
+          <button
+            onClick={handleBack}
+            id="backBtn"
+            className="z-[200] p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl"
+          >
+            Back
+          </button>
+          <h1 className="text-[2rem] text-white font-extrabold">
+            Connecting the Dots
+          </h1>
+          <button
+            onClick={handleNext}
+            id="nextBtn"
+            className="z-[200] p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl"
+          >
+            Next
+          </button>
+        </div>
+        <div className="w-full flex gap-10 justify-center">
+          <div className="text-white h-full w-[200px] rounded-xl backdrop-blur-xl border-2 border-black flex flex-col items-center justify-center">
+            <h1>Win : {credentials.winNumber}</h1>
+            <h1>Lose : {credentials.loseNumber}</h1>
+            <h1>Score : {(Number(credentials.score) * 100).toFixed(2)}</h1>
+            <h1>Path: Path {credentials.path}</h1>
+            <h1>Difficulty: {difficulty.toUpperCase()}</h1>
+          </div>
+          <canvas
+            height="540px"
+            width="1080px"
+            id="canvas"
+            className="border-2 border-black bg-[url('/pixel_grass.jpg')] rounded-lg"
+          ></canvas>
+        </div>
 
-        <canvas
-          height="640px"
-          width="640px"
-          id="canvas"
-          className="border-2 border-black bg-[url('/pixel_grass.jpg')] rounded-lg"
-        ></canvas>
+        <div className="flex gap-10">
+          <button
+            onClick={() => {
+              Swal.fire({
+                title: "Are you sure you want to restart?",
+                icon: "question",
+                showDenyButton: true,
+                confirmButtonText: "Yes",
+                denyButtonText: "No",
+                allowOutsideClick: false,
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  handleRestart();
+                } else if (result.isDenied) {
+                  return;
+                }
+              });
+            }}
+            className="z-[200] p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl w-[10rem]"
+          >
+            Restart
+          </button>
+          <button
+            onClick={() => {
+              Swal.fire({
+                title: "Are you sure you want to save?",
+                text: "You will be directed to home page!",
+                icon: "question",
+                showDenyButton: true,
+                confirmButtonText: "Yes",
+                denyButtonText: "No",
+                allowOutsideClick: false,
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  const email = window.localStorage.getItem("email");
+                  Swal.fire({
+                    title: "Please enter game name",
+                    input: "text",
+                    showCancelButton: true,
+                    confirmButtonText: "Save",
+                  }).then(async (result) => {
+                    if (result.isConfirmed) {
+                      try {
+                        if (email) {
+                          handleSave(result.value);
+                          router.push("/home");
+                        }
+                      } catch (err) {
+                        console.log(err);
+                      }
+                    }
+                  });
+                } else if (result.isDenied) {
+                }
+              });
+            }}
+            className="z-[200] p-[0.5rem_1.5rem] font-bold text-white rounded-xl border-2 border-white backdrop-blur-xl w-[10rem]"
+          >
+            Save
+          </button>
+        </div>
+
         <div className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center bg-transparent pt-[4.5rem]">
           <div
             className={`w-full h-screen ${
-              gameType === "Treblecross" ? "" : "hidden"
+              gameType === "Treblecross" ? "block" : "hidden"
             } `}
           >
             <Treblecross setTicTacToe={setWin} difficulty={difficulty} />
@@ -415,7 +598,7 @@ export default function page() {
 
           <div
             className={`w-full h-screen ${
-              gameType === "FFTicTacToe" ? "" : "hidden"
+              gameType === "FFTicTacToe" ? "block" : "hidden"
             } `}
           >
             <FFTicTacToe setTicTacToe={setWin} difficulty={difficulty} />
@@ -423,7 +606,7 @@ export default function page() {
 
           <div
             className={`w-full h-screen ${
-              gameType === "MisereTicTacToe" ? "" : "hidden"
+              gameType === "MisereTicTacToe" ? "block" : "hidden"
             } `}
           >
             <MisereTicTacToe setTicTacToe={setWin} difficulty={difficulty} />

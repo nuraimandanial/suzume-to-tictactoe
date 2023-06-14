@@ -11,6 +11,10 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @RestController
 @RequestMapping("/treblecross")
 @CrossOrigin
@@ -98,14 +102,13 @@ public class Treblecross {
     Treblecross gameInstance = gameInstances.get(email);
     gameInstance.setTurn("PLAYER");
     double suboptimalProb = 0;
-    System.out.println(gameInstance.getDifficultyString());
 
     if (gameInstance.getDifficultyString().equals("hard")) {
-      suboptimalProb = 0;
-    } else if (gameInstance.getDifficultyString().equals("medium")) {
       suboptimalProb = 0.5;
-    } else
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
       suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
 
     if (gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository, leaderBoardRepository,
         false) == 200) {
@@ -130,6 +133,7 @@ public class Treblecross {
         gameInstance.printBoard();
 
         if (checkWinAfterPlayerMove == 200) {
+
           gameInstance.aiMove(suboptimalProb);
           gameInstance.printBoard();
           checkWinAfterAIMove = gameInstance.checkWin(move.getEmail(), move.getDifficulty(), userRepository,
@@ -160,7 +164,6 @@ public class Treblecross {
     Treblecross gameInstance = gameInstances.get(email);
     gameInstance.setTurn("PLAYER");
     double suboptimalProb = 0;
-    System.out.println(gameInstance.getDifficultyString());
 
     if (move.getDifficulty().equals("hard")) {
       suboptimalProb = 0;
@@ -343,9 +346,10 @@ public class Treblecross {
 
       }
       // Add randomness to the decision
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best -= (int) (Math.random() * 10) - 5;
+        }
       }
 
       return best - depth;
@@ -371,9 +375,10 @@ public class Treblecross {
         }
 
       }
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best += (int) (Math.random() * 10) + 5;
+        }
       }
 
       return best + depth;
@@ -381,7 +386,7 @@ public class Treblecross {
 
   }
 
-  public Move findBestMove(String board[][], double suboptimalProb) {
+  public Move findBestMove(String board[][], double suboptimalProb, String turn, boolean isMax) {
     int bestVal = Integer.MIN_VALUE;
     Move bestMove = new Move();
     bestMove.row = -1;
@@ -419,8 +424,42 @@ public class Treblecross {
   public void aiMove(double suboptimalProb) {
     setTurn("AI");
     Move bestMove = new Move();
-    bestMove = findBestMove(board, suboptimalProb);
+    bestMove = findBestMove(board, suboptimalProb, "AI", false);
     board[0][bestMove.row] = SYMBOL;
+  }
+
+  @PostMapping("/{email}/EvEAiMove")
+  public ResponseEntity<String> EvEAiMove(@RequestBody EveMove eve, @PathVariable String email) {
+    Treblecross gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
+    Move bestMove = new Move();
+    double suboptimalProb = 0;
+
+    if (gameInstance.getDifficultyString().equals("hard")) {
+      suboptimalProb = 0.5;
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
+      suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
+    if (gameInstance.checkTripleCross(board) == 200) {
+      bestMove = findBestMove(board, suboptimalProb, eve.getTurn(), eve.getIsMax());
+      if (gameInstance.checkValidMove(bestMove.row)) {
+        board[0][bestMove.row] = SYMBOL;
+        gameInstance.setBoard(board);
+        gameInstance.printBoard();
+        int winCode = gameInstance.checkTripleCross(board);
+        if (winCode == 1 && turn.equals("AI")) {
+          System.out.println("Computer 2 Win!");
+        } else if (winCode == 1 && turn.equals("PLAYER")) {
+          System.out.println("Computer 1 Win!");
+        }
+        return ResponseEntity.ok("{ \"winCode\": \" " + winCode + " \"}");
+      } else {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move");
+      }
+    }
+    return ResponseEntity.ok("{ \"winCode\": \" " + 0 + " \"}");
 
   }
 
@@ -469,6 +508,15 @@ public class Treblecross {
       saved.setBoard(gameInstance.getBoard2());
       saved.setDifficulty(gameInstance.getDifficultyString());
       saved.setGame("treblecross");
+      saved.setName(boardToSave.getName());
+      ObjectMapper objectMapper = new ObjectMapper();
+      String JsonString = "";
+      try {
+        JsonString = objectMapper.writeValueAsString(gameInstance.getPreviousMoveStack());
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
+      saved.setPreviousMove(JsonString);
       savedGameRepository.save(saved);
       return ResponseEntity.ok("{\"message\": \"Successfully Saved!\"}");
     }
@@ -477,10 +525,25 @@ public class Treblecross {
   @PostMapping("/{email}/loadgame")
   public ResponseEntity<String> loadGame(@RequestBody BoardLoaded loadedBoard, @PathVariable String email) {
     Treblecross gameInstance = gameInstances.get(email);
-    gameInstance.setBoard(loadedBoard.getBoard());
-    gameInstance.setDifficulty2(loadedBoard.getDifficulty());
+    List<SavedGame> savedGame = savedGameRepository.findById(loadedBoard.getId());
+    if (!savedGame.isEmpty()) {
+      gameInstance.setBoard(savedGame.get(0).getBoard());
+      gameInstance.setDifficulty2(savedGame.get(0).getDifficulty());
+      ObjectMapper objectMapper = new ObjectMapper();
+      Stack<String[][]> PreviousMoveStack;
+      try {
+        PreviousMoveStack = objectMapper.readValue(savedGame.get(0).getPreviousMove(),
+            new TypeReference<Stack<String[][]>>() {
+            });
+        gameInstance.setPreviousMoveStack(PreviousMoveStack);
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
 
-    return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+      return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
+    }
   }
 
   public <E> List<E> intersection(List<E> emailList, List<E> gameList) {
@@ -509,7 +572,7 @@ public class Treblecross {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
           intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
@@ -534,7 +597,7 @@ public class Treblecross {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int loseTime = intersected.get(0).getLose();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
           intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));
@@ -625,53 +688,40 @@ class PvPClassTreblecross {
 
 class BoardSaved {
   private String email;
+  private String name;
 
   public BoardSaved() {
 
   }
 
-  public BoardSaved(String email) {
+  public BoardSaved(String email, String name) {
     this.email = email;
+    this.name = name;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
+  public String getName() {
+    return name;
   }
 }
 
 class BoardLoaded {
-  private String[][] board;
-  private String difficulty;
+  private String id;
 
   public BoardLoaded() {
 
   }
 
-  public BoardLoaded(String[][] board, String difficulty) {
-    this.board = board;
-    this.difficulty = difficulty;
+  public BoardLoaded(String id) {
+    this.id = id;
   }
 
-  public String[][] getBoard() {
-    return board;
+  public String getId() {
+    return id;
   }
-
-  public void setBoard(String[][] board) {
-    this.board = board;
-  }
-
-  public String getDifficulty() {
-    return difficulty;
-  }
-
-  public void setDifficulty(String difficulty) {
-    this.difficulty = difficulty;
-  }
-
 }
 
 class SettingDifficulty {
@@ -691,5 +741,27 @@ class SettingDifficulty {
 
   public String getDifficulty() {
     return difficulty;
+  }
+}
+
+class EveMove {
+  private String turn;
+  private boolean isMax;
+
+  public EveMove(String turn, boolean isMax) {
+    this.turn = turn;
+    this.isMax = isMax;
+  }
+
+  public EveMove() {
+
+  }
+
+  public String getTurn() {
+    return turn;
+  }
+
+  public boolean getIsMax() {
+    return isMax;
   }
 }

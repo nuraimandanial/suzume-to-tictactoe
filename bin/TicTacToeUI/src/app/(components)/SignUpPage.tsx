@@ -41,7 +41,6 @@ export default function SignUpPage() {
         },
       });
       const message = await res.json();
-      console.log(message.message);
 
       if (message.message === "Successfully registered!") {
         Swal.fire({ title: message.message, icon: "success" }).then(

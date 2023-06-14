@@ -4,56 +4,57 @@ import { nanoid } from "nanoid";
 import ScrollButton from "./ScrollButton";
 import ExtractLeaderBoardClass from "./ExtractLeaderBoardClass";
 
-export default function FFtictactoe() {
-  const [FFTTT, setFFTTT] = useState({
+export default function StoryMode() {
+  const [Story, setStory] = useState({
     EasyUserName: [""],
-    EasyScore: [0],
+    EasyScore: [0.0],
     EasyWin: [0],
     EasyLose: [0],
     MediumUserName: [""],
-    MediumScore: [0],
+    MediumScore: [0.0],
     MediumWin: [0],
     MediumLose: [0],
     HardUserName: [""],
-    HardScore: [0],
+    HardScore: [0.0],
     HardWin: [0],
     HardLose: [0],
   });
 
   const items = [
     [
-      3,
+      6,
       "Easy",
-      FFTTT.EasyUserName,
-      FFTTT.EasyScore,
-      FFTTT.EasyWin,
-      FFTTT.EasyLose,
+      Story.EasyUserName,
+      Story.EasyScore,
+      Story.EasyWin,
+      Story.EasyLose,
     ],
     [
-      4,
+      7,
       "Medium",
-      FFTTT.MediumUserName,
-      FFTTT.MediumScore,
-      FFTTT.MediumWin,
-      FFTTT.MediumLose,
+      Story.MediumUserName,
+      Story.MediumScore,
+      Story.MediumWin,
+      Story.MediumLose,
     ],
     [
-      5,
+      8,
       "Hard",
-      FFTTT.HardUserName,
-      FFTTT.HardScore,
-      FFTTT.HardWin,
-      FFTTT.HardLose,
+      Story.HardUserName,
+      Story.HardScore,
+      Story.HardWin,
+      Story.HardLose,
     ],
   ];
 
   useEffect(() => {
     (async () => {
       const obj = new ExtractLeaderBoardClass();
-      const data = await obj.ExtractLeaderBoard("ffttt", "easy");
-      const data2 = await obj.ExtractLeaderBoard("ffttt", "medium");
-      const data3 = await obj.ExtractLeaderBoard("ffttt", "hard");
-      setFFTTT({
+      const data = await obj.ExtractLeaderBoard("CTD", "easy");
+      const data2 = await obj.ExtractLeaderBoard("CTD", "medium");
+      const data3 = await obj.ExtractLeaderBoard("CTD", "hard");
+
+      setStory({
         EasyUserName: data?.userName,
         EasyScore: data?.score,
         EasyWin: data?.win,
@@ -72,16 +73,15 @@ export default function FFtictactoe() {
 
   return (
     <section
-      id="leaderboardpage2"
+      id="leaderboardpage4"
       className="pt-10 relative snap-center h-screen w-full flex flex-col justify-center items-center gap-14 py-2"
     >
-      <ScrollButton boardID="leaderboardcarou2" />
-
+      <ScrollButton boardID="leaderboardcarou4" />
       <h1 className="z-[100] text-white text-4xl font-extrabold">
-        5 x 5 Regular Tic Tac Toe
+        Connecting the Dots
       </h1>
       <div
-        id="leaderboardcarou2"
+        id="leaderboardcarou4"
         className="scroll-smooth overflow-x-scroll snap-mandatory snap-x z-[100] h-[70%] w-[50rem] border-2 border-white bg-transparent backdrop-blur-xl rounded-xl grid grid-rows-1 grid-flow-col"
       >
         {items.map((item) => {
@@ -146,7 +146,7 @@ export default function FFtictactoe() {
                               {(item[5] as number[])[index]}
                             </td>
                             <td className="px-6 py-4 dark:text-white">
-                              {(item[3] as number[])[index].toFixed(0)}
+                              {((item[3] as number[])[index] * 100).toFixed(2)}
                             </td>
                           </tr>
                         );

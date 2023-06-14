@@ -11,77 +11,129 @@ const Comfor = Comfortaa({
   subsets: ["latin", "latin-ext"],
 });
 
-export default function MTTT() {
+export default function StoryMode() {
   const obj = new HomeMethod();
   const router = useRouter();
   const [loadGameCriteria, setLoadGameCriteria] = useState({
-    board: [[]],
     gameId: [],
     difficulty: [],
-    gameType: [],
+    map: [],
     name: [],
-    email: "",
+    score: [],
+    win: [],
+    lose: [],
+    path: [],
   });
+  const [initialUpdate, setInitialUpdate] = useState(0);
 
   useEffect(() => {
     const email = window.localStorage.getItem("email");
 
     if (email) {
-      setLoadGameCriteria((prev) => ({
-        ...prev,
-        email: email,
-      }));
       (async () => {
-        const board = await obj.ExtractLoadedBoard(email, "mttt");
-        if (board) {
+        const res = await fetch(
+          `http://localhost:8080/database/${email}/loadgame/storymode`
+        );
+
+        if (res) {
+          const loadedboard = await res.json();
+          const id = JSON.parse(loadedboard.id);
+          const difficulty = JSON.parse(
+            loadedboard.difficulty
+              .replace("[", '["')
+              .replace("]", '"]')
+              .replaceAll(", ", '", "')
+          );
+
+          const maze = JSON.parse(loadedboard.map);
+          const name = JSON.parse(
+            loadedboard.name
+              .replace("[", '["')
+              .replace("]", '"]')
+              .replaceAll(", ", '", "')
+          );
+          const win = JSON.parse(loadedboard.win);
+
+          const lose = JSON.parse(loadedboard.lose);
+          const score = JSON.parse(loadedboard.score);
+          const path = JSON.parse(loadedboard.path);
           setLoadGameCriteria((prev) => ({
-            ...prev,
-            board: board.board,
-            gameId: board.id,
-            difficulty: board.difficulty,
-            gameType: board.game,
-            name: board.name,
+            gameId: id,
+            difficulty: difficulty,
+            map: maze,
+            win,
+            lose,
+            name,
+            score,
+            path,
           }));
         }
       })();
+      if (initialUpdate !== 2) {
+        setInitialUpdate((prev) => prev + 1);
+      }
     }
-  }, []);
+  }, [initialUpdate]);
 
   function changePage(number: number) {
-    const element = document.getElementById(`carou3`);
+    const element = document.getElementById(`carou4`);
 
     if (element) {
-      element.scrollLeft += 400 * number;
+      element.scrollLeft += 700 * number;
     }
   }
 
-  async function handleLoadGame(id: number, game: string) {
+  async function handleLoadGame(id: number) {
     const email = window.localStorage.getItem("email");
     const res = await fetch(
-      `http://localhost:8080/mtictactoe/${email}/loadgame`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: id.toString() }),
-      }
+      `http://localhost:8080/connectingthedots/${email}/loadGame/${id}`
     );
 
     handleDelete(id);
-    if (res.ok) {
-      router.push(`/tictactoe/${game}`);
-    }
+    router.push(`/maze`);
   }
 
   async function handleDelete(id: number) {
-    const message = await obj.DeleteSavedGame(id);
-    const board = await obj.ExtractLoadedBoard(loadGameCriteria.email, "mttt");
-    if (board) {
+    const email = window.localStorage.getItem("email");
+    await fetch(
+      `http://localhost:8080/connectingthedots/${email}/deleteGame/${id}`
+    );
+
+    const res = await fetch(
+      `http://localhost:8080/database/${email}/loadgame/storymode`
+    );
+
+    if (res) {
+      const loadedboard = await res.json();
+      const id = JSON.parse(loadedboard.id);
+      const difficulty = JSON.parse(
+        loadedboard.difficulty
+          .replace("[", '["')
+          .replace("]", '"]')
+          .replaceAll(", ", '", "')
+      );
+
+      const maze = JSON.parse(loadedboard.map);
+      const name = JSON.parse(
+        loadedboard.name
+          .replace("[", '["')
+          .replace("]", '"]')
+          .replaceAll(", ", '", "')
+      );
+      const win = JSON.parse(loadedboard.win);
+
+      const lose = JSON.parse(loadedboard.lose);
+      const score = JSON.parse(loadedboard.score);
+      const path = JSON.parse(loadedboard.path);
       setLoadGameCriteria((prev) => ({
-        ...prev,
-        board: board.board,
-        gameId: board.id,
-        difficulty: board.difficulty,
-        gameType: board.game,
+        gameId: id,
+        difficulty: difficulty,
+        map: maze,
+        win,
+        lose,
+        name,
+        score,
+        path,
       }));
     }
   }
@@ -106,62 +158,41 @@ export default function MTTT() {
         <p>{">"}</p>
       </button>
       <div
-        id={"carou3"}
+        id={"carou4"}
         className={`${
           loadGameCriteria.gameId.length <= 1
             ? "overflow-hidden"
             : "overflow-scroll"
-        } scroll-smooth hideScroll snap-x snap-mandatory py-10 w-[40rem] border-2 border-white text-white rounded-3xl backdrop-blur-xl`}
+        } scroll-smooth hideScroll snap-x snap-mandatory py-10 w-[70rem] border-2 border-white text-white rounded-3xl backdrop-blur-xl`}
       >
         <div
           className={`${Comfor.className} z-[3] font-extrabold grid grid-rows-1 grid-flow-col gap-4`}
         >
-          {loadGameCriteria.board.length > 0 ? (
-            loadGameCriteria.board.map((insideBoard, index) => {
+          {loadGameCriteria.map.length > 0 ? (
+            loadGameCriteria.map.map((theMap, index) => {
               return (
                 <section
                   key={nanoid()}
-                  className="snap-center w-[40rem] z-[3] font-extrabold flex flex-col justify-center place-items-center"
+                  className="snap-center w-[70rem] z-[3] font-extrabold flex flex-col justify-center place-items-center"
                 >
                   <h1 className="text-3xl font-bold mb-8 uppercase">
                     {`${loadGameCriteria.name[index]} ( ${loadGameCriteria.difficulty[index]} )`}
                   </h1>
-                  <div className="grid grid-cols-[6rem_6rem_6rem]">
-                    {insideBoard.flat(1).map((lastBoard, index2) => {
-                      return (
-                        <div
-                          key={nanoid()}
-                          className={` ${
-                            index2 === 0 ? "border-t-[7px] border-l-[7px]" : ""
-                          } 
-                        ${index2 === 1 ? "border-t-[7px]" : ""} ${
-                            index2 === 2 ? "border-t-[7px] border-r-[7px]" : ""
-                          } ${index2 === 3 ? "border-l-[7px]" : ""} ${
-                            index2 === 5 ? "border-r-[7px]" : ""
-                          } ${
-                            index2 === 6 ? "border-l-[7px] border-b-[7px]" : ""
-                          } ${index2 === 7 ? "border-b-[7px]" : ""} ${
-                            index2 === 8 ? "border-b-[7px] border-r-[7px]" : ""
-                          } text-[4rem] flex justify-center items-center text-5xl w-[6rem] h-[6rem] border-4 border-white`}
-                        >
-                          <h1
-                            className={`${
-                              lastBoard === "X"
-                                ? "text-red-400"
-                                : "text-emerald-400"
-                            } pointer-events-none translate-y-2`}
-                          >
-                            {lastBoard === "-"
-                              ? ""
-                              : lastBoard === "X"
-                              ? "X"
-                              : "O"}
-                          </h1>
-                        </div>
-                      );
-                    })}
+                  <div className="grid grid-rows-1 grid-flow-col">
+                    {/* map */}
+                    {/* <canvas
+                      height="270px"
+                      width="540px"
+                      id={`canvas${index}`}
+                      className="border-2 border-black bg-[url('/pixel_grass.jpg')] rounded-lg"
+                    ></canvas> */}
+                    <div className="bg-[url('/pixel_grass.jpg')] font-bold text-2xl h-[270px] w-[540px] rounded-3xl border-white border-2 flex flex-col gap-4 justify-center items-center">
+                      <h1>Path : Path {loadGameCriteria.path[index]}</h1>
+                      <h1>Win : {loadGameCriteria.win[index]}</h1>
+                      <h1>Lose : {loadGameCriteria.lose[index]}</h1>
+                      <h1>Score : {loadGameCriteria.score[index]}</h1>
+                    </div>
                   </div>
-
                   <div className="flex gap-10">
                     <button
                       onClick={() =>
@@ -175,10 +206,7 @@ export default function MTTT() {
                           confirmButtonText: "Yes",
                         }).then((result) => {
                           if (result.isConfirmed) {
-                            handleLoadGame(
-                              loadGameCriteria.gameId[index],
-                              loadGameCriteria.gameType[index]
-                            );
+                            handleLoadGame(loadGameCriteria.gameId[index]);
                           }
                         })
                       }
@@ -218,7 +246,7 @@ export default function MTTT() {
           ) : (
             <section
               key={nanoid()}
-              className="snap-center w-[40rem] h-[18rem] z-[3] font-extrabold grid place-items-center text-3xl"
+              className="snap-center w-[70rem] h-[18rem] z-[3] font-extrabold grid place-items-center text-3xl"
             >
               <h1>No Saved Game!</h1>
             </section>

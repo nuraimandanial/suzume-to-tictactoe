@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,9 @@ public class DatabaseControl {
 
   @Autowired
   private LeaderBoardRepository leaderBoardRepository;
+
+  @Autowired
+  private CTDSavedRepository ctdSavedRepository;
 
   @PostMapping("/register")
   public ResponseEntity<String> Register(@RequestBody RegisterCredential registerCredential) {
@@ -73,7 +78,6 @@ public class DatabaseControl {
   @PostMapping("/findemail")
   public ResponseEntity<String> findEmail(@RequestBody EmailFind userEmail) {
     List<User> user = userRepository.findByUserName(userEmail.getUsername());
-    System.out.println("Hi find mail");
     if (!user.isEmpty()) {
       return ResponseEntity.ok("{\"email\": \"" + user.get(0).getEmail() + "\"}");
     } else {
@@ -99,6 +103,41 @@ public class DatabaseControl {
 
   }
 
+  @GetMapping("{email}/loadgame/storymode")
+  public ResponseEntity<String> loadStoryMode(@PathVariable String email) {
+    List<User> users = userRepository.findByEmail(email);
+    if (!users.isEmpty()) {
+      List<CTDSaved> savedGame = ctdSavedRepository.findByUserEmail(users.get(0).getEmail());
+      ArrayList<Integer> savedGameId = new ArrayList<>();
+      ArrayList<String> savedGameMap = new ArrayList<>();
+      ArrayList<String> savedGameDifficulty = new ArrayList<>();
+      ArrayList<String> savedGameName = new ArrayList<>();
+      ArrayList<Double> savedGameScore = new ArrayList<>();
+      ArrayList<Integer> savedGameWin = new ArrayList<>();
+      ArrayList<Integer> savedGameLose = new ArrayList<>();
+      ArrayList<Integer> savedPathNumber = new ArrayList<>();
+
+      for (int i = 0; i < savedGame.size(); i++) {
+        savedGameMap.add(savedGame.get(i).getMap());
+        savedGameId.add(savedGame.get(i).getId());
+        savedGameDifficulty.add(savedGame.get(i).getDifficulty());
+        savedGameName.add(savedGame.get(i).getName());
+        savedGameScore.add(savedGame.get(i).getScore());
+        savedGameWin.add(savedGame.get(i).getWin());
+        savedGameLose.add(savedGame.get(i).getLose());
+        savedPathNumber.add(savedGame.get(i).getPathNumber());
+      }
+
+      return ResponseEntity.ok("{\"id\":\"" + savedGameId + "\", \"map\": \"" + savedGameMap
+          + "\", \"difficulty\": \"" + savedGameDifficulty + "\", \"name\": \"" + savedGameName + "\", \"score\": \""
+          + savedGameScore + "\", \"win\": \"" + savedGameWin + "\", \"lose\": \"" + savedGameLose + "\", \"path\": \""
+          + savedPathNumber + "\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
+    }
+
+  }
+
   @PostMapping("/loadgame")
   public ResponseEntity<String> loadGame(@RequestBody LastGameData loadGame) {
     List<User> user = userRepository.findByEmail(loadGame.getUserEmail());
@@ -111,14 +150,18 @@ public class DatabaseControl {
       ArrayList<Integer> savedGameId = new ArrayList<>();
       ArrayList<String> savedGameDifficulty = new ArrayList<>();
       ArrayList<String> savedGameType = new ArrayList<>();
+      ArrayList<String> savedGameName = new ArrayList<>();
+
       for (int i = 0; i < intersected.size(); i++) {
         savedGameString.add(Arrays.deepToString(intersected.get(i).getBoard()));
         savedGameId.add(intersected.get(i).getId());
         savedGameDifficulty.add(intersected.get(i).getDifficulty());
         savedGameType.add(intersected.get(i).getGame());
+        savedGameName.add(intersected.get(i).getName());
       }
       return ResponseEntity.ok("{\"board\": \"" + savedGameString + "\", \"id\": \"" + savedGameId
-          + "\", \"difficulty\": \"" + savedGameDifficulty + "\", \"game\": \"" + savedGameType + "\"}");
+          + "\", \"difficulty\": \"" + savedGameDifficulty + "\", \"game\": \"" + savedGameType + "\", \"name\": \""
+          + savedGameName + "\"}");
     } else {
       return ResponseEntity.badRequest().body("{\"message\": \"Fail to load!\"}");
     }
@@ -143,7 +186,7 @@ public class DatabaseControl {
     List<LeaderBoard> listByDif = leaderBoardRepository.findByDifficulty(leaderBoardData.getDifficulty());
     List<LeaderBoard> intersectedList = intersection(listByGame, listByDif);
     ArrayList<String> userName = new ArrayList<>();
-    ArrayList<Integer> score = new ArrayList<>();
+    ArrayList<Double> score = new ArrayList<>();
     ArrayList<Integer> win = new ArrayList<>();
     ArrayList<Integer> lose = new ArrayList<>();
 

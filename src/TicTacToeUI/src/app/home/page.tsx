@@ -8,6 +8,7 @@ import FFTTT from "./(components)/ffttt";
 import MTTT from "./(components)/mttt";
 import Background from "../(components)/Background";
 import { nanoid } from "nanoid";
+import StoryMode from "./(components)/storymode";
 
 export default function page() {
   const router = useRouter();
@@ -21,16 +22,21 @@ export default function page() {
   const items = [
     {
       ID: [2, 1, 3],
+      GameName: "Story Mode",
+      Page: <StoryMode />,
+    },
+    {
+      ID: [3, 2, 4],
       GameName: "Treblecross Tic Tac Toe",
       Page: <TTT />,
     },
     {
-      ID: [3, 2, 4],
+      ID: [4, 3, 5],
       GameName: "5 x 5 Regular Tic Tac Toe",
       Page: <FFTTT />,
     },
     {
-      ID: [4, 1],
+      ID: [5, 1],
       GameName: "Misere Regular Tic Tac Toe",
       Page: <MTTT />,
     },
@@ -89,12 +95,17 @@ export default function page() {
         </div>
 
         <div className="z-[99] h-[30rem] w-[30rem] border-2 border-white backdrop-blur-xl bg-transparent rounded-2xl flex flex-col justify-around items-center py-4">
-          <a
-            href="/maze"
+          <button
+            onClick={() => {
+              const email = window.localStorage.getItem("email");
+              if (email) {
+                handleNewGame("maze", "/connectingthedots", email);
+              }
+            }}
             className="pointer-cursor z-[100] flex justify-center items-center text-white text-[1.5rem] w-[65%] border-2 border-white p-4 rounded-md"
           >
             Story Mode
-          </a>
+          </button>
           <button
             onClick={() => {
               const email = window.localStorage.getItem("email");
@@ -151,7 +162,7 @@ export default function page() {
                 alt=""
               />
             </div>
-            {!(index === 2) && (
+            {!(index === 3) && (
               <div
                 onClick={() => {
                   nextPage(`page${item.ID[2]}`);

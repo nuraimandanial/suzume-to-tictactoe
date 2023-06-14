@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @RestController
 @RequestMapping("/mtictactoe")
 @CrossOrigin
@@ -92,9 +96,9 @@ public class MisereTicTacToe {
     double suboptimalProb = 0;
 
     if (gameInstance.getDifficultyString().equals("hard")) {
-      suboptimalProb = 0.02;
+      suboptimalProb = 0.0;
     } else if (gameInstance.getDifficultyString().equals("medium")) {
-      suboptimalProb = 0.2;
+      suboptimalProb = 0.3;
     } else
       suboptimalProb = 0.5;
 
@@ -222,6 +226,41 @@ public class MisereTicTacToe {
 
     }
     return ResponseEntity.ok("Player Move successfully!");
+  }
+
+  @PostMapping("/{email}/EvEAiMove")
+  public ResponseEntity<String> EvEAiMove(@RequestBody EveMove eve, @PathVariable String email) {
+    MisereTicTacToe gameInstance = gameInstances.get(email);
+    String[][] board = gameInstance.getBoard2();
+    Move bestMove = new Move();
+    double suboptimalProb = 0;
+
+    if (gameInstance.getDifficultyString().equals("hard")) {
+      suboptimalProb = 0.5;
+    } else if (gameInstance.getDifficultyString().equals("medium")) {
+      suboptimalProb = 0.7;
+    } else
+      suboptimalProb = 0.9;
+    if (gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false) == 200) {
+      bestMove = findBestMove(board, suboptimalProb, eve.getTurn(), eve.getIsMax());
+      if (gameInstance.checkValidMove(bestMove.row, bestMove.col)) {
+        board[bestMove.row][bestMove.col] = eve.getTurn();
+        gameInstance.setBoard(board);
+        gameInstance.printBoard();
+        int winCode = gameInstance.checkWin(email, difficulty, userRepository, leaderBoardRepository, false);
+        if (winCode == 1 && eve.getTurn().equals("X")) {
+          System.out.println("Computer 1 Win!");
+        } else if (winCode == 1 && eve.getTurn().equals("O")) {
+          System.out.println("Computer 2 Win!");
+        }
+        return ResponseEntity.ok("{ \"winCode\": \" " + winCode + " \"}");
+      } else {
+        System.out.println("Invalid Move!");
+        return ResponseEntity.ok("Invalid Move");
+      }
+    }
+    return ResponseEntity.ok("{ \"winCode\": \" " + 0 + " \"}");
+
   }
 
   public boolean checkValidMove(int whichRow, int whichCol) {
@@ -375,9 +414,10 @@ public class MisereTicTacToe {
         }
       }
       // Add randomness to the decision
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best -= (int) (Math.random() * 10) - 5;
+        }
       }
 
       return best - depth;
@@ -404,17 +444,18 @@ public class MisereTicTacToe {
           }
         }
       }
-
-      if (Math.random() < suboptimalProb) {
-        best += (int) (Math.random() * 10) - 5;
+      if (depth == 0) {
+        if (Math.random() < suboptimalProb) {
+          best += (int) (Math.random() * 10) + 5;
+        }
       }
 
       return best + depth;
     }
   }
 
-  public Move findBestMove(String board[][], double suboptimalProb) {
-    int bestVal = Integer.MIN_VALUE;
+  public Move findBestMove(String board[][], double suboptimalProb, String symbol, boolean isMax) {
+    int bestVal = Integer.MAX_VALUE;
     Move bestMove = new Move();
     bestMove.row = -1;
     bestMove.col = -1;
@@ -427,11 +468,11 @@ public class MisereTicTacToe {
         // Check if cell is empty
         if (board[i][j].equals("-")) {
           // Make the move
-          board[i][j] = PLAYER;
+          board[i][j] = symbol;
 
           // compute evaluation function for this
           // move.
-          int moveVal = minimax(board, 0, false, suboptimalProb);
+          int moveVal = minimax(board, 0, isMax, suboptimalProb);
 
           // Undo the move
           board[i][j] = "-";
@@ -440,7 +481,7 @@ public class MisereTicTacToe {
           // more than the best value, then update
           // best/
 
-          if (moveVal > bestVal) {
+          if (moveVal < bestVal) {
             bestMove.row = i;
             bestMove.col = j;
             bestVal = moveVal;
@@ -456,7 +497,7 @@ public class MisereTicTacToe {
   public void aiMove(double suboptimalProb) {
 
     Move bestMove = new Move();
-    bestMove = findBestMove(board, suboptimalProb);
+    bestMove = findBestMove(board, suboptimalProb, AI, true);
     board[bestMove.row][bestMove.col] = AI;
 
   }
@@ -517,6 +558,15 @@ public class MisereTicTacToe {
       saved.setBoard(gameInstance.getBoard2());
       saved.setDifficulty(gameInstance.getDifficultyString());
       saved.setGame("mttt");
+      saved.setName(boardToSave.getName());
+      ObjectMapper objectMapper = new ObjectMapper();
+      String JsonString = "";
+      try {
+        JsonString = objectMapper.writeValueAsString(gameInstance.getPreviousMoveStack());
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
+      saved.setPreviousMove(JsonString);
       savedGameRepository.save(saved);
       return ResponseEntity.ok("{\"message\": \"Successfully Saved!\"}");
     }
@@ -525,10 +575,25 @@ public class MisereTicTacToe {
   @PostMapping("/{email}/loadgame")
   public ResponseEntity<String> loadGame(@RequestBody BoardLoaded loadedBoard, @PathVariable String email) {
     MisereTicTacToe gameInstance = gameInstances.get(email);
-    gameInstance.setBoard(loadedBoard.getBoard());
-    gameInstance.setDifficulty2(loadedBoard.getDifficulty());
+    List<SavedGame> savedGame = savedGameRepository.findById(loadedBoard.getId());
+    if (!savedGame.isEmpty()) {
+      gameInstance.setBoard(savedGame.get(0).getBoard());
+      gameInstance.setDifficulty2(savedGame.get(0).getDifficulty());
+      ObjectMapper objectMapper = new ObjectMapper();
+      Stack<String[][]> PreviousMoveStack;
+      try {
+        PreviousMoveStack = objectMapper.readValue(savedGame.get(0).getPreviousMove(),
+            new TypeReference<Stack<String[][]>>() {
+            });
+        gameInstance.setPreviousMoveStack(PreviousMoveStack);
+      } catch (JsonProcessingException e) {
+        System.out.println(e.getMessage());
+      }
 
-    return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+      return ResponseEntity.ok("{\"message\": \"Game Loaded Successfully!\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
+    }
   }
 
   public <E> List<E> intersection(List<E> emailList, List<E> gameList) {
@@ -557,7 +622,7 @@ public class MisereTicTacToe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int winTime = intersected.get(0).getWin();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setWin(winTime + 1);
           intersected.get(0).setScore(previousScore + 5);
           leaderBoardRepository.save(intersected.get(0));
@@ -582,7 +647,7 @@ public class MisereTicTacToe {
         List<LeaderBoard> intersected = intersection(intersect1, userByGame);
         if (!intersected.isEmpty()) {
           int loseTime = intersected.get(0).getLose();
-          int previousScore = intersected.get(0).getScore();
+          double previousScore = intersected.get(0).getScore();
           intersected.get(0).setLose(loseTime + 1);
           intersected.get(0).setScore(previousScore - 3);
           leaderBoardRepository.save(intersected.get(0));
@@ -679,53 +744,40 @@ class PvPClass {
 
 class BoardSaved {
   private String email;
+  private String name;
 
   public BoardSaved() {
 
   }
 
-  public BoardSaved(String email) {
+  public BoardSaved(String email, String name) {
     this.email = email;
+    this.name = name;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
+  public String getName() {
+    return name;
   }
 }
 
 class BoardLoaded {
-  private String[][] board;
-  private String difficulty;
+  private String id;
 
   public BoardLoaded() {
 
   }
 
-  public BoardLoaded(String[][] board, String difficulty) {
-    this.board = board;
-    this.difficulty = difficulty;
+  public BoardLoaded(String id) {
+    this.id = id;
   }
 
-  public String[][] getBoard() {
-    return board;
+  public String getId() {
+    return id;
   }
-
-  public void setBoard(String[][] board) {
-    this.board = board;
-  }
-
-  public String getDifficulty() {
-    return difficulty;
-  }
-
-  public void setDifficulty(String difficulty) {
-    this.difficulty = difficulty;
-  }
-
 }
 
 class SettingDifficulty {
@@ -745,5 +797,27 @@ class SettingDifficulty {
 
   public String getDifficulty() {
     return difficulty;
+  }
+}
+
+class EveMove {
+  private String turn;
+  private boolean isMax;
+
+  public EveMove(String turn, boolean isMax) {
+    this.turn = turn;
+    this.isMax = isMax;
+  }
+
+  public EveMove() {
+
+  }
+
+  public String getTurn() {
+    return turn;
+  }
+
+  public boolean getIsMax() {
+    return isMax;
   }
 }
