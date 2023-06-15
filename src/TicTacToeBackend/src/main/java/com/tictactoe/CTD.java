@@ -372,15 +372,18 @@ public class CTD {
       }
     } else {
       System.out.println("Tie!");
-      int[][] tempMap1 = gameInstance.getMap();
-      tempMap1[currentY][currentX] = gameInstance.getBeforeMove();
-      currentX = gameInstance.getPreviousMove()[1];
-      currentY = gameInstance.getPreviousMove()[0];
-      gameInstance.setPosition(new int[] { currentY, currentX });
-      tempMap1[currentY][currentX] = 9;
-      gameInstance.setMap(tempMap1);
-      gameInstance.setMoveIndex(gameInstance.getMoveIndex() - 1);
-      gameInstance.printMap();
+      takeBackStep(email);
+      /*
+       * int[][] tempMap1 = gameInstance.getMap();
+       * tempMap1[currentY][currentX] = gameInstance.getBeforeMove();
+       * currentX = gameInstance.getPreviousMove()[1];
+       * currentY = gameInstance.getPreviousMove()[0];
+       * gameInstance.setPosition(new int[] { currentY, currentX });
+       * tempMap1[currentY][currentX] = 9;
+       * gameInstance.setMap(tempMap1);
+       * gameInstance.setMoveIndex(gameInstance.getMoveIndex() - 1);
+       * gameInstance.printMap();
+       */
       return new ResponseEntity<>(200, HttpStatus.OK);
     }
   }

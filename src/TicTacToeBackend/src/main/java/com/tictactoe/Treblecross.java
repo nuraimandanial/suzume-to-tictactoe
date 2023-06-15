@@ -115,7 +115,7 @@ public class Treblecross {
 
       if (!gameInstance.checkValidMove(move.getWhichRow())) {
         System.out.println("Invalid Move!");
-        return ResponseEntity.ok("Invalid Move!");
+        return ResponseEntity.ok("{ \"status\": \"Invalid Move!\"}");
       } else {
         String[][] board = gameInstance.getBoard2();
         String[][] previousMove = new String[board.length][board[0].length];
@@ -177,7 +177,7 @@ public class Treblecross {
 
       if (!gameInstance.checkValidMove(move.getWhichRow())) {
         System.out.println("Invalid Move!");
-        return ResponseEntity.ok("Invalid Move!");
+        return ResponseEntity.ok("{\"status\": \"Invalid Move!\"}");
       } else {
         String[][] board = gameInstance.getBoard2();
         String[][] previousMove = new String[board.length][board[0].length];

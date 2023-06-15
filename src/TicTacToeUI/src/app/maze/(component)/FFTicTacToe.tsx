@@ -80,6 +80,10 @@ export default function FFTicTacToe({
           );
           const board = await res.json();
 
+          if (isWin === "Invalid Move!") {
+            Swal.fire({ title: "Invalid Move!", icon: "error" });
+          }
+
           setTTT((prev) => ({
             ...prev,
             board: board,

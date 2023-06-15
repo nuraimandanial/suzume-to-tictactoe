@@ -81,6 +81,9 @@ export default function MisereTicTacToe({
             `http://localhost:8080/mtictactoe/${email}/board`
           );
           const board = await res.json();
+          if (isWin === "Invalid Move!") {
+            Swal.fire({ title: "Invalid Move!", icon: "error" });
+          }
 
           setTTT((prev) => ({
             ...prev,
@@ -113,14 +116,18 @@ export default function MisereTicTacToe({
                 end: { status: isWin, end: true },
                 board: board,
               }));
-              setTicTacToe(-1);
+              if (isWin === -1) {
+                setTicTacToe(-1);
+              } else if (isWin === 0) {
+                setTicTacToe(0);
+              }
               const element = document.getElementById(
                 "MisereTicTacToe"
               ) as HTMLDivElement;
               element.style.display = "none";
               handleRestart();
               Swal.fire({
-                title: "You Lose!",
+                title: `${isWin === -1 ? "You Lose!" : "Tie!"}`,
               });
             }
           }
