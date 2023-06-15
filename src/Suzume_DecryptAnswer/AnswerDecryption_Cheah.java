@@ -1,4 +1,3 @@
-package Suzume_DecryptAnswer;
 import java.util.ArrayList;
 import java.util.Stack;
 
