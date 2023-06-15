@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={popins.className}>
         {children}
-        <audio id="audioClass" controls autoPlay hidden loop>
+        <audio id="audioClass" controls hidden loop>
           <source src="/onlymp3.to - Suzume no Tojimari  Theme Song  Trailer song-m3w1mUXtCj0-256k-1657457948088.mp3" />
         </audio>
         <div className="w-full flex justify-center items-center">

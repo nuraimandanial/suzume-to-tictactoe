@@ -10,7 +10,6 @@ export default function LoginPage() {
     username: "",
     password: "",
   });
-  const [cookies, setCookie, removeCookie] = useCookies(["myCookie"]);
 
   function handleChange(e: any) {
     const { name, value } = e.target;

@@ -52,7 +52,7 @@ public class CTDSaved {
   @Column(name = "moveIndex")
   private int moveIndex;
 
-  @Column(name = "score")
+  @Column(name = "score", columnDefinition = "DOUBLE")
   private double score;
 
   @Column(name = "win")
