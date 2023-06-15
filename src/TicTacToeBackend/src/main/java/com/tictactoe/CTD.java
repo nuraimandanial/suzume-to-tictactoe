@@ -238,7 +238,6 @@ public class CTD {
     gameInstance.setPreviousMove(temp);
 
     if (gameInstance.getMap()[currentY][currentX] == 2) {
-
       int[][] tempMap1 = gameInstance.getMap();
       tempMap1[tempY][tempX] = gameInstance.getBeforeMove();
       gameInstance.setMap(tempMap1);
@@ -248,7 +247,12 @@ public class CTD {
       gameInstance.setMap(tempMap2);
       System.out.println("Arrived station!");
       gameInstance.printMap();
-      return new ResponseEntity<>(chooseTTT(), HttpStatus.OK);
+
+      if (gameInstance.getmoveIndexBeforeStation().contains(gameInstance.getMoveIndex() - 1)) {
+        return new ResponseEntity<>(200, HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>(chooseTTT(), HttpStatus.OK);
+      }
     } else {
       int[][] tempMap1 = gameInstance.getMap();
       tempMap1[tempY][tempX] = gameInstance.getBeforeMove();
