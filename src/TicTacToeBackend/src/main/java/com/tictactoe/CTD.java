@@ -34,6 +34,9 @@ public class CTD {
   @Autowired
   LeaderBoardRepository leaderBoardRepository;
 
+  @Autowired
+  CTDHistoryRepository ctdHistoryRepository;
+
   // index 0 = Y, index 1 = X
   private String difficulty; // save
   private double score; // save
@@ -269,6 +272,9 @@ public class CTD {
       } else {
         System.out.println("You Win!");
         gameInstance.saveLeaderboard(email, userRepository, leaderBoardRepository);
+        List<User> users = userRepository.findByEmail(email);
+        gameInstance.saveHistory(userRepository, ctdHistoryRepository, 1, gameInstance, users.get(0));
+
         return new ResponseEntity<>(0, HttpStatus.OK);
       }
 
@@ -353,6 +359,8 @@ public class CTD {
     } else if (code == -1) {
       if (gameInstance.getStations().isEmpty()) {
         System.out.println("You Lose!");
+        List<User> users = userRepository.findByEmail(email);
+        gameInstance.saveHistory(userRepository, ctdHistoryRepository, -1, gameInstance, users.get(0));
         return new ResponseEntity<>(-1, HttpStatus.OK);
       } else {
         gameInstance.setBeforeMove(0);
@@ -380,17 +388,6 @@ public class CTD {
     } else {
       System.out.println("Tie!");
       takeBackStep(email);
-      /*
-       * int[][] tempMap1 = gameInstance.getMap();
-       * tempMap1[currentY][currentX] = gameInstance.getBeforeMove();
-       * currentX = gameInstance.getPreviousMove()[1];
-       * currentY = gameInstance.getPreviousMove()[0];
-       * gameInstance.setPosition(new int[] { currentY, currentX });
-       * tempMap1[currentY][currentX] = 9;
-       * gameInstance.setMap(tempMap1);
-       * gameInstance.setMoveIndex(gameInstance.getMoveIndex() - 1);
-       * gameInstance.printMap();
-       */
       return new ResponseEntity<>(200, HttpStatus.OK);
     }
   }
@@ -425,6 +422,21 @@ public class CTD {
         leaderBoardRepository.save(leaderBoard);
       }
     }
+  }
+
+  public void saveHistory(UserRepository userRepository,
+      CTDHistoryRepository ctdHistoryRepository, int status, CTD gameInstance, User user) {
+    CTDHistory history = new CTDHistory();
+
+    history.setDifficulty(gameInstance.getDifficulty());
+    history.setWin(gameInstance.getWin());
+    history.setLose(gameInstance.getLose());
+    history.setScore(gameInstance.getScore());
+    history.setPathNumber(gameInstance.getPathNumber());
+    history.setUser(user);
+    history.setStatus(status);
+    ctdHistoryRepository.save(history);
+
   }
 
   public <E> List<E> intersection(List<E> emailList, List<E> gameList) {

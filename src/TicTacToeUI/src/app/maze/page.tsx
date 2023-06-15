@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 import ImageNext from "next/image";
 import NavBar from "../(components)/navBar";
+import { nanoid } from "nanoid";
 
 export default function page() {
   const router = useRouter();
@@ -65,6 +66,21 @@ export default function page() {
     score: 0.0,
     path: 0,
   });
+
+  const [history, setHistory] = useState({
+    difficulty: [""],
+    win: [0],
+    lose: [0],
+    score: [0],
+    path: [0],
+    status: [0],
+  });
+
+  async function handleDeleteHistory() {
+    const email = localStorage.getItem("email");
+    await fetch(`http://localhost:8080/database/${email}/deleteCTDHistory`);
+    setRefresh((prev) => !prev);
+  }
 
   async function handleRestart() {
     const email = localStorage.getItem("email");
@@ -360,6 +376,39 @@ export default function page() {
           setMaze(map);
         }
 
+        const resHistory = await fetch(
+          `http://localhost:8080/database/${email}/getHistory`
+        );
+
+        const resHistoryData = await resHistory.json();
+
+        setHistory({
+          difficulty: JSON.parse(
+            resHistoryData.difficulty
+              .replace("[", '["')
+              .replace("]", '"]')
+              .replaceAll(", ", '", "')
+          ),
+          win: JSON.parse(resHistoryData.win),
+          lose: JSON.parse(resHistoryData.lose),
+          score: JSON.parse(resHistoryData.score),
+          path: JSON.parse(resHistoryData.path),
+          status: JSON.parse(resHistoryData.status),
+        });
+        console.log({
+          difficulty: JSON.parse(
+            resHistoryData.difficulty
+              .replace("[", '["')
+              .replace("]", '"]')
+              .replaceAll(", ", '", "')
+          ),
+          win: JSON.parse(resHistoryData.win),
+          lose: JSON.parse(resHistoryData.lose),
+          score: JSON.parse(resHistoryData.score),
+          path: JSON.parse(resHistoryData.path),
+          status: JSON.parse(resHistoryData.status),
+        });
+
         const resWin = await fetch(
           `http://localhost:8080/connectingthedots/${email}/getwin`
         );
@@ -519,10 +568,48 @@ export default function page() {
           </div>
           <canvas
             height="540px"
-            width="1080px"
+            width="800px"
             id="canvas"
             className="border-2 border-black bg-[url('/pixel_grass.jpg')] rounded-lg"
           ></canvas>
+          <div className="z-[999] relative text-white overflow-y-scroll h-[540px] w-[200px] rounded-xl backdrop-blur-xl border-2 border-black flex flex-col p-4">
+            <h1 className="text-[1.5rem] text-center mb-4">History</h1>
+            {history.difficulty[0] === "" ? (
+              <div className="h-full w-full flex justify-center items-center">
+                No History
+              </div>
+            ) : (
+              (history.win as number[]).map((win, index) => {
+                return (
+                  <div
+                    key={nanoid()}
+                    className="text-sm p-4 border-2 rounded-xl mb-4 "
+                  >
+                    <h1>Win : {win}</h1>
+                    <h1>Lose : {history.lose[index]}</h1>
+                    <h1>
+                      Score : {(Number(history.score[index]) * 100).toFixed(2)}
+                    </h1>
+                    <h1>Path: Path {history.path[index] + 1}</h1>
+                    <h1>
+                      Difficulty:{" "}
+                      {(history.difficulty as string[])[index].toUpperCase()}
+                    </h1>
+                    <h1>
+                      Status:{" "}
+                      {Number(history.status[index]) === -1 ? "Lose" : "Win"}
+                    </h1>
+                  </div>
+                );
+              })
+            )}
+            <button
+              onClick={handleDeleteHistory}
+              className="border-2 rounded-lg"
+            >
+              Delete All
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-10">

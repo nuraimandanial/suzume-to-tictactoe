@@ -143,7 +143,7 @@ export default function MisereTicTacToe({
       id="MisereTicTacToe"
       className="fixed w-full h-screen overflow-hidden grid place-items-center bg-transparent"
     >
-      <div className="w-[1080px] h-[540px] translate-x-[120px] translate-y-[-30px] flex flex-col justify-center items-center gap-10 backdrop-blur-lg p-10 rounded-md border-1 border-black">
+      <div className="w-[800px] h-[540px] translate-y-[-30px] flex flex-col justify-center items-center gap-10 backdrop-blur-lg p-10 rounded-md border-1 border-black">
         <h1 className="text-2xl font-bold">Misere Tic Tac Toe</h1>
         <div
           className={`${Comfor.className} z-[3] rounded-2xl font-extrabold grid grid-cols-[6rem_6rem_6rem] justify-center`}

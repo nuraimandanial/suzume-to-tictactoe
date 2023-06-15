@@ -31,6 +31,9 @@ public class DatabaseControl {
   @Autowired
   private CTDSavedRepository ctdSavedRepository;
 
+  @Autowired
+  private CTDHistoryRepository ctdHistoryRepository;
+
   @PostMapping("/register")
   public ResponseEntity<String> Register(@RequestBody RegisterCredential registerCredential) {
     String message = checkUserExistence(registerCredential.getEmail(), registerCredential.getUserName());
@@ -166,6 +169,46 @@ public class DatabaseControl {
       return ResponseEntity.badRequest().body("{\"message\": \"Fail to load!\"}");
     }
 
+  }
+
+  @GetMapping("/{email}/getHistory")
+  public ResponseEntity<String> getCTDHistory(@PathVariable String email) {
+    List<User> users = userRepository.findByEmail(email);
+    if (!users.isEmpty()) {
+      List<CTDHistory> history = ctdHistoryRepository.findByUser(users.get(0));
+      ArrayList<String> historyDifficulty = new ArrayList<>();
+      ArrayList<Double> historyScore = new ArrayList<>();
+      ArrayList<Integer> historyWin = new ArrayList<>();
+      ArrayList<Integer> historyLose = new ArrayList<>();
+      ArrayList<Integer> historyPathNumber = new ArrayList<>();
+      ArrayList<Integer> historyStatus = new ArrayList<>();
+
+      for (int i = 0; i < history.size(); i++) {
+        historyDifficulty.add(history.get(i).getDifficulty());
+        historyScore.add(history.get(i).getScore());
+        historyWin.add(history.get(i).getWin());
+        historyLose.add(history.get(i).getLose());
+        historyPathNumber.add(history.get(i).getPathNumber());
+        historyStatus.add(history.get(i).getStatus());
+      }
+      return ResponseEntity.ok("{\"difficulty\": \"" + historyDifficulty + "\", \"score\": \"" + historyScore
+          + "\", \"win\": \"" + historyWin + "\", \"lose\": \"" + historyLose + "\", \"path\": \""
+          + historyPathNumber + "\", \"status\" : \"" + historyStatus + "\"}");
+    } else {
+      return ResponseEntity.badRequest().body("{\"message\": \"Some error occurs!\"}");
+    }
+
+  }
+
+  @GetMapping("/{email}/deleteCTDHistory")
+  public void deleteCTDHistory(@PathVariable String email) {
+    List<User> users = userRepository.findByEmail(email);
+    if (!users.isEmpty()) {
+      List<CTDHistory> history = ctdHistoryRepository.findByUser(users.get(0));
+      for (int i = 0; i < history.size(); i++) {
+        ctdHistoryRepository.deleteById(history.get(i).getId());
+      }
+    }
   }
 
   @PostMapping("/delete")
