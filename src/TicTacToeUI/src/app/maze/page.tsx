@@ -112,9 +112,9 @@ export default function page() {
     let data = await res.json();
 
     // unremark this to enable GOD MODE!!!!
-    if (data === 1 || data === 2 || data === 3) {
-      data = 3;
-    }
+    /* if (data === 1 || data === 2 || data === 3) {
+      data = 2;
+    } */
 
     const resMap = await fetch(
       `http://localhost:8080/connectingthedots/${email}/map`

@@ -275,7 +275,10 @@ public class CTD {
   // Randomly choose a TTT
   public int chooseTTT() {
     Random random = new Random();
-    int randomNum = random.nextInt(3) + 1;
+    int randomNum = random.nextInt(4) + 1;
+    if (randomNum >= 3) {
+      return 3;
+    }
     return randomNum;
   }
 
