@@ -107,7 +107,7 @@ public class MisereTicTacToe {
 
       if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
-        return ResponseEntity.ok("Invalid Move!");
+        return ResponseEntity.ok("{ \"status\": \"Invalid Move!\"}");
       } else {
         String[][] board = gameInstance.getBoard2();
         String[][] previousMove = new String[3][3];
@@ -162,7 +162,7 @@ public class MisereTicTacToe {
 
       if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
-        return ResponseEntity.ok("Invalid Move!");
+        return ResponseEntity.ok("{\"status\": \"Invalid Move!\"}");
       } else {
         String[][] board = gameInstance.getBoard2();
         String[][] previousMove = new String[3][3];
@@ -406,7 +406,7 @@ public class MisereTicTacToe {
 
             // Call minimax recursively and choose
             // the maximum value
-            best = Math.max(best, minimax(board, depth + 1, !isMax, suboptimalProb));
+            best = Math.max(best, minimax(board, depth + 1, isMax, suboptimalProb));
 
             // Undo the move
             board[i][j] = "-";

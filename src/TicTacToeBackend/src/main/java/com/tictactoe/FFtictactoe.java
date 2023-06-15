@@ -108,7 +108,7 @@ public class FFtictactoe {
 
       if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
-        return ResponseEntity.ok("Invalid Move!");
+        return ResponseEntity.ok("{ \"status\": \"Invalid Move!\"}");
       } else {
         String[][] board = gameInstance.getBoard2();
         String[][] previousMove = new String[5][5];
@@ -199,7 +199,7 @@ public class FFtictactoe {
 
       if (!gameInstance.checkValidMove(move.getWhichRow(), move.getWhichCol())) {
         System.out.println("Invalid Move!");
-        return ResponseEntity.ok("Invalid Move!");
+        return ResponseEntity.ok("{\"status\": \"Invalid Move!\"}");
       } else {
         String[][] board = gameInstance.getBoard2();
         String[][] previousMove = new String[5][5];
@@ -451,14 +451,11 @@ public class FFtictactoe {
             // Make the move
             board[i][j] = AI;
 
-            // Call alpha-beta recursively and choose
             // the minimum value
             best = Math.min(best, minimax(board, depth + 1, maxDepth, !isMax, suboptimalProb));
 
             // Undo the move
             board[i][j] = "-";
-
-            // Alpha-beta pruning
 
           }
         }

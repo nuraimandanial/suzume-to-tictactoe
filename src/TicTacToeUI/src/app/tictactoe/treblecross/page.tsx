@@ -128,6 +128,10 @@ export default function page() {
             "/treblecross"
           );
 
+          if (isWin === "Invalid Move!") {
+            Swal.fire({ title: "Invalid Move!", icon: "error" });
+          }
+
           const res = await fetch(
             `http://localhost:8080/treblecross/${email}/board`
           );
@@ -247,6 +251,7 @@ export default function page() {
             turn,
             isMax
           );
+
           isWin = Number(isWin);
 
           if (turn == "AI" && isWin == 1) {

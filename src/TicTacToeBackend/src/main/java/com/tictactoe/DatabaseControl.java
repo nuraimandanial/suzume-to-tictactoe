@@ -67,7 +67,7 @@ public class DatabaseControl {
   public ResponseEntity<String> Login(@RequestBody LoginCredentials loginCredentials) {
     List<User> user = userRepository.findByUserName(loginCredentials.getUsername());
     if (user.isEmpty()) {
-      return ResponseEntity.ok("{\"message\": \"Invalid Email!\"}");
+      return ResponseEntity.ok("{\"message\": \"Invalid Username!\"}");
     } else if (!user.get(0).getPassword().equals(loginCredentials.getPassword())) {
       return ResponseEntity.ok("{\"message\": \"Incorrect Password!\"}");
     } else {

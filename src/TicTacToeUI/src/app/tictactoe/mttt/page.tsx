@@ -133,9 +133,12 @@ export default function page() {
             board: board,
           }));
 
+          if (isWin === "Invalid Move!") {
+            Swal.fire({ title: "Invalid Move!", icon: "error" });
+          }
+
           if (isWin === 1 || isWin === 0 || isWin === -1) {
             if (isWin === 1) {
-              setTimeout(() => {}, 200);
               setTTT((prev) => ({
                 ...prev,
                 win: true,
@@ -143,7 +146,6 @@ export default function page() {
                 board: board,
               }));
             } else {
-              setTimeout(() => {}, 200);
               setTTT((prev) => ({
                 ...prev,
                 win: false,
