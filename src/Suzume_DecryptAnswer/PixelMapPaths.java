@@ -30,6 +30,11 @@ public class PixelMapPaths {
             int currY = curr[1];
             int currStation = curr[2];
 
+        // If the current station count exceeds the maximum station count, break the loop
+        if (currStation > stationCount) {
+            break;
+        }
+
             // If we have reached the destination and passed through the required number of stations
             if (currStation == stationCount && currX == destX && currY == destY) {
                 numPaths += pathCounts[currX][currY][currStation];
