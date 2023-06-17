@@ -8,168 +8,177 @@ import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 
 public class ImageReader {
-    private int[][] bitData;
+  private int[][] bitData;
+  private int[][][] map = new int[5][20][10];
+  private int[][] combined = new int[40][20];
 
-    public int[][] imageReader(File directory, int i) throws IOException { // Actually can just directly scale down the bits value into range of 0 - 3, but lets make it longer process.
-        File imagePath = new File(directory, "image " + i + ".png");
-        BufferedImage image = ImageIO.read(imagePath);
+  private File directory;
 
-        int width = image.getWidth();
-        int height = image.getHeight();
-        bitData = new int[height][width];
+  private Node[][][] nodeMap = new Node[5][20][10];
+  private Node[][] combinedMap = new Node[40][20];
 
-        for (int j = 0; j < height; j++) {
-            for (int k = 0; k < width; k++) {
-                int pixel = image.getRGB(k, j);
-                int grey = (pixel >> 16) & 0xff;
-                bitData[j][k] = grey;
-            }
+  public ImageReader() {
+    JFileChooser chooser = getPath();
+    int result = chooser.showOpenDialog(null);
+    if (result == JFileChooser.APPROVE_OPTION) {
+      directory = chooser.getSelectedFile();
+
+      for (int i = 1; i < 5; i++) {
+        try {
+          bitData = scaleDown(imageReader(directory, i));
+        } catch (IOException e) {
+          e.printStackTrace();
         }
 
-        return bitData;
+        map[i] = bitData;
+      }
+    }
+    saveNode(map);
+    combineNode(); combineMap();
+  }
+
+  private int[][] imageReader(File directory, int i) throws IOException {
+    File imagePath = new File(directory, "image " + i + ".png");
+    BufferedImage image = ImageIO.read(imagePath);
+
+    int width = image.getWidth();
+    int height = image.getHeight();
+    bitData = new int[height][width];
+
+    for (int j = 0; j < height; j++) {
+      for (int k = 0; k < width; k++) {
+        int pixel = image.getRGB(k, j);
+        int grey = (pixel >> 16) & 0xff;
+        bitData[j][k] = grey;
+      }
     }
 
-    public int[][] scaleDown(int[][] bitData) {
-        for (int i = 0; i < bitData.length; i++) {
-            for (int j = 0; j < bitData[i].length; j++) {
-                bitData[i][j] = bitData[i][j] / 64;
-            }
+    return bitData;
+  }
+
+  private int[][] scaleDown(int[][] bitData) {
+    for (int i = 0; i < bitData.length; i++) {
+      for (int j = 0; j < bitData[i].length; j++) {
+        bitData[i][j] = bitData[i][j] / 64;
+      }
+    }
+    return bitData;
+  }
+
+  private JFileChooser getPath() {
+    JFileChooser chooser = new JFileChooser();
+    chooser.setCurrentDirectory(new File("."));
+    chooser.setDialogTitle("Select Directory");
+    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    return chooser;
+  }
+
+  private void combineMap() {
+    int[][] position = {
+        { 0, 0 },
+        { 0, 0 },
+        { 0, 10 },
+        { 20, 0 },
+        { 20, 10 }
+    };
+
+    for (int i = 1; i < map.length; i++) {
+      int startX = position[i][0];
+      int startY = position[i][1];
+
+      for (int j = 0; j < map[i].length; j++) {
+        for (int k = 0; k < map[i][j].length; k++) {
+          if (i != 4 && map[i][j][k] == 3) {
+            combined[startX + j][startY + k] = 1;
+            continue;
+          }
+          combined[startX + j][startY + k] = map[i][j][k];
         }
-
-        return bitData;
+      }
     }
+  }
 
-    public JFileChooser getPath() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new File("."));
-        chooser.setDialogTitle("Select Directory");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        return chooser;
-    }
+  private void saveNode(int[][][] map) {
+    for (int i = 0; i < nodeMap.length; i++) {
+      for (int j = 0; j < nodeMap[i].length; j++) {
+        for (int k = 0; k < nodeMap[i][j].length; k++) {
+          int value = map[i][j][k];
+          Node node = new Node(j, k, value);
 
-    public static void main(String[] args) throws IOException {
-        PathFinder pf = new PathFinder();
+          nodeMap[i][j][k] = node;
 
-        JFileChooser chooser = new ImageReader().getPath();
-        int result = chooser.showOpenDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File directory = chooser.getSelectedFile();
-            System.out.println(directory);
-            
-            for (int i = 1; i <= 4; i++) {
-                int[][] map = new ImageReader().scaleDown(new ImageReader().imageReader(directory, i));   
-                
-                System.out.println("\nImage " + i);
-                for (int j = 0; j < map.length; j++) {
-                    for (int k = 0; k < map[j].length; k++) {
-                        System.out.printf("%3d", map[j][k]);
-                    }
-                    System.out.println();
-                }
-
-                System.out.println("Possible path map " + i + " : " + pf.findPaths(map, 3, true));
-            }
+          if (j > 0) {
+            Node up = nodeMap[i][j - 1][k];
+            node.setUp(up);
+            up.setDown(node);
+          }
+          if (k > 0) {
+            Node left = nodeMap[i][j][k - 1];
+            node.setLeft(left);
+            left.setRight(node);
+          }
         }
+      }
     }
+  }
+
+  private void combineNode() {
+    int[][] position = {
+        { 0, 0 },
+        { 0, 0 },
+        { 0, 10 },
+        { 20, 0 },
+        { 20, 10 }
+    };
+
+    for (int i = 1; i < nodeMap.length; i++) {
+      int startX = position[i][0];
+      int startY = position[i][1];
+
+      for (int j = 0; j < nodeMap[i].length; j++) {
+        for (int k = 0; k < nodeMap[i][j].length; k++) {
+          int value = nodeMap[i][j][k].getValue();
+          Node node;
+
+          if (i != 4 && value == 3) {
+            node = new Node(startX + j, startY + k, 1);
+          } else {
+            node = new Node(startX + j, startY + k, value);
+          }
+
+          combinedMap[startX + j][startY + k] = node;
+
+          if (startX + j > 0) {
+            Node up = combinedMap[startX + j - 1][startY + k];
+            node.setUp(up);
+            up.setDown(node);
+          }
+          if (startY + k > 0) {
+            Node left = combinedMap[startX + j][startY + k - 1];
+            node.setLeft(left);
+            left.setRight(node);
+          }
+        }
+      }
+    }
+  }
+
+  public File getDirectory() {
+    return directory;
+  }
+
+  public int[][] getBitData(int i) {
+    if (i == 0) {
+      return combined;
+    }
+    return map[i];
+  }
+
+  public Node[][] getNodeMap(int i) {
+    return nodeMap[i];
+  }
+
+  public Node[][] getCombinedMap() {
+    return combinedMap;
+  }
 }
-/*
-class PathFinder {
-    private static final int[][] DIRECTIONS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Possible directions: up, down, left, right
-    private static int TARGET_STATIONS = 3; // Number of stations to pass through
-    private int pathCount;
-
-    public int findPaths(int[][] array, int targetStation) {
-        TARGET_STATIONS = targetStation;
-        pathCount = 0;
-        boolean[][] visited = new boolean[array.length][array[0].length];
-        dfs(array, visited, 0, 0, 0);
-        return pathCount;
-    }
-
-    public int findPaths(int[][] array, boolean combined) {
-        int pathCount = 0;
-        boolean[][] visited = new boolean[array.length][array[0].length];
-
-        Queue<int[]> queue = new LinkedList<>();
-        int stationCount = 0;
-
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
-                if (array[i][j] == 2) {
-                    queue.offer(new int[]{i, j, stationCount});
-                }
-            }
-        }
-
-        while (!queue.isEmpty()) {
-            int[] curr = queue.poll();
-            int row = curr[0];
-            int col = curr[1];
-            int count = curr[2];
-
-            if (count == 4) {
-                pathCount++; // Found a valid path passing through exactly 4 stations
-                continue;
-            }
-
-            for (int[] direction : DIRECTIONS) {
-                int newRow = row + direction[0];
-                int newCol = col + direction[1];
-
-                if (isValidMove(array, visited, newRow, newCol)) {
-                    visited[newRow][newCol] = true;
-                    queue.offer(new int[]{newRow, newCol, count + 1});
-                }
-            }
-        }
-
-        return pathCount;
-    }
-
-    private boolean isValidMove(int[][] array, boolean[][] visited, int row, int col) {
-        return row >= 0 && row < array.length && col >= 0 && col < array[0].length &&
-                !visited[row][col] && array[row][col] != 1;
-    }
-
-    private void dfs(int[][] array, boolean[][] visited, int row, int col, int stationCount) {
-        if (row < 0 || row >= array.length || col < 0 || col >= array[0].length || visited[row][col] || array[row][col] == 1) {
-            return; // Out of bounds, already visited, or obstacle encountered
-        }
-
-        if (array[row][col] == 3 && stationCount == TARGET_STATIONS) {
-            pathCount++; // Found a valid path passing through exactly 3 stations
-            //printPath(array, visited);
-            return;
-        }
-
-        if (array[row][col] == 2) {
-            stationCount++; // Increment station count if passing through a station
-        }
-
-        visited[row][col] = true;
-
-        for (int[] direction : DIRECTIONS) {
-            int newRow = row + direction[0];
-            int newCol = col + direction[1];
-            dfs(array, visited, newRow, newCol, stationCount);
-        }
-
-        visited[row][col] = false; // Reset visited flag for backtracking
-    }
-    
-    /*
-    private void printPath(int[][] array, boolean[][] visited) {
-        System.out.println("Path: " + pathCount);
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
-                if (visited[i][j]) {
-                    System.out.print("X ");
-                } else {
-                    System.out.print(array[i][j] + " ");
-                }
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-} */
